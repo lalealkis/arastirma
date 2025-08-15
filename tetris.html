@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #2d2d2d;
+            font-family: 'Press Start 2P', cursive;
+            color: #fff;
+            margin: 0;
+            flex-direction: column;
+            padding: 10px;
+            box-sizing: border-box;
+		overflow: hidden;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            border: 4px solid #555;
+            padding: 20px;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .main-area {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        #gameCanvas {
+            border: 3px solid #444;
+            background-color: #000;
+            display: block;
+            border-radius: 5px;
+        }
+
+        .info-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .info-panel h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.1em;
+            color: #0f0;
+            text-shadow: 1px 1px #000;
+        }
+
+        .info-panel p {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+
+        #score, #lines, #level, #timer {
+            color: #ff0;
+            font-size: 1.1em;
+        }
+
+        #nextCanvas {
+            border: 2px solid #444;
+            background-color: #000;
+            border-radius: 5px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .controls button {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8em;
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: 2px solid #388E3C;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 2px 2px #000;
+            transition: background-color 0.2s, transform 0.1s;
+            text-shadow: 1px 1px #000;
+        }
+
+        .controls button:active {
+            background-color: #388E3C;
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        .message-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 10;
+            font-size: 1.5em;
+            color: #f00;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .message-overlay p {
+            margin-bottom: 20px;
+        }
+
+        /* Shared style for buttons and the link in the overlay */
+        .message-button {
+            display: inline-block; /* Allow padding and styling */
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8em;
+            padding: 10px 15px;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 2px 2px #000;
+            transition: background-color 0.2s, transform 0.1s;
+            text-shadow: 1px 1px #000;
+            margin-top: 10px;
+            text-decoration: none; /* Remove underline from link */
+            text-align: center;
+        }
+        .message-button:active {
+             transform: translateY(2px);
+             box-shadow: none;
+        }
+
+        /* Specific style for Restart button */
+        #restartBtn {
+            background-color: #007bff; /* Blue */
+            border: 2px solid #0056b3;
+        }
+        #restartBtn:active {
+             background-color: #0056b3;
+        }
+
+        /* Specific style for Homepage link (styled as button) */
+        #homepageLink {
+             background-color: #ffc107; /* Yellow/Orange */
+             border: 2px solid #d39e00;
+             color: #000; /* Black text for contrast */
+        }
+         #homepageLink:active {
+             background-color: #d39e00;
+         }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .main-area {
+                flex-direction: column;
+                align-items: center;
+            }
+             .info-panel {
+                min-width: unset;
+                width: 100%;
+            }
+            .game-container {
+                padding: 10px;
+            }
+            .controls button {
+                font-size: 0.7em;
+                padding: 8px 12px;
+            }
+             .message-overlay {
+                font-size: 1.2em;
+            }
+             .message-button {
+                 font-size: 0.7em;
+                 padding: 8px 12px;
+             }
+        }
+
+        .return-home-button {
+            position: fixed; /* Keep the button in the same place on the screen */
+            top: 1rem; /* 16px from the top */
+            left: 1rem; /* 16px from the left */
+            width: 48px; /* Set width */
+            height: 48px; /* Set height */
+            border-radius: 50%; /* Make it circular */
+            background-color: #2563eb; /* Blue background color */
+            color: white; /* White text/emoji color */
+            display: flex; /* Use flexbox to center content */
+            align-items: center; /* Vertically center content */
+            justify-content: center; /* Horizontally center content */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add a shadow */
+            z-index: 50; /* Ensure it stays on top of other elements */
+            text-decoration: none; /* Remove underline from link */
+            font-size: 1.5rem; /* Adjust emoji size */
+            transition: background-color 0.2s ease-in-out; /* Smooth transition for hover effect */
+        }
+
+        /* Hover effect for the button */
+        .return-home-button:hover {
+            background-color: #1d4ed8; /* Darker blue on hover */
+        }
+    </style>
+</head>
+<body>
+    <a href="/experiments-homepage/home.html" class="return-home-button" aria-label="Anasayfaya Dön">
+	↩
+	</a>
+    <div class="game-container">
+        <div class="main-area">
+            <canvas id="gameCanvas"></canvas>
+            <div class="info-panel">
+                <h2>SCORE</h2>
+                <p id="score">0</p>
+                <h2>LINES</h2>
+                <p id="lines">0</p>
+                <h2>LEVEL</h2>
+                <p id="level">1</p>
+                 <h2>TIME LEFT</h2>
+                <p id="timer">05:00</p>
+                <h2>NEXT</h2>
+                <canvas id="nextCanvas"></canvas>
+            </div>
+        </div>
+        <div class="controls">
+            <button id="leftBtn">LEFT</button>
+            <button id="rotateBtn">ROTATE</button>
+            <button id="rightBtn">RIGHT</button>
+            <button id="downBtn">DOWN</button>
+        </div>
+    </div>
+
+    <div id="messageOverlay" class="message-overlay">
+        <p id="messageText"></p>
+        <button id="restartBtn" class="message-button" style="display: none;">RESTART</button>
+        <a id="homepageLink" href="/experiments-homepage/home.html" class="message-button" style="display: none;">Homepage</a>
+    </div>
+
+    <script>
+        // --- Game Setup ---
+        const canvas = document.getElementById('gameCanvas');
+        const context = canvas.getContext('2d');
+        const nextCanvas = document.getElementById('nextCanvas');
+        const nextContext = nextCanvas.getContext('2d');
+
+        const scoreElement = document.getElementById('score');
+        const linesElement = document.getElementById('lines');
+        const levelElement = document.getElementById('level');
+        const timerElement = document.getElementById('timer');
+
+        const messageOverlay = document.getElementById('messageOverlay');
+        const messageText = document.getElementById('messageText');
+        const restartBtn = document.getElementById('restartBtn');
+        const homepageLink = document.getElementById('homepageLink'); // Get the link element
+
+        const COLS = 10;
+        const ROWS = 20;
+        const BLOCK_SIZE = 30;
+        const NEXT_COLS = 4;
+        const NEXT_ROWS = 4;
+        const NEXT_BLOCK_SIZE = 20;
+
+        canvas.width = COLS * BLOCK_SIZE;
+        canvas.height = ROWS * BLOCK_SIZE;
+        nextCanvas.width = NEXT_COLS * NEXT_BLOCK_SIZE;
+        nextCanvas.height = NEXT_ROWS * NEXT_BLOCK_SIZE;
+
+        context.scale(BLOCK_SIZE, BLOCK_SIZE);
+        nextContext.scale(NEXT_BLOCK_SIZE, NEXT_BLOCK_SIZE);
+
+        const COLORS = [ null, '#FF0D72', '#0DC2FF', '#0DFF72', '#F538FF', '#FF8E0D', '#FFE138', '#3877FF' ];
+        const SHAPES = [ [], [[0, 1, 0], [1, 1, 1], [0, 0, 0]], [[0, 0, 0, 0], [2, 2, 2, 2], [0, 0, 0, 0], [0, 0, 0, 0]], [[0, 3, 3], [3, 3, 0], [0, 0, 0]], [[4, 4, 0], [0, 4, 4], [0, 0, 0]], [[0, 0, 5], [5, 5, 5], [0, 0, 0]], [[6, 0, 0], [6, 6, 6], [0, 0, 0]], [[7, 7], [7, 7]] ];
+
+        // --- Game State ---
+        let board;
+        let currentPiece;
+        let nextPiece;
+        let score;
+        let lines;
+        let level;
+        let gameOver;
+        let gamePaused;
+        let dropCounter;
+        let dropInterval;
+        let lastTime;
+        let gameTimerInterval = null; // ID for the timer interval
+        let remainingTime;          // Time left in seconds
+        let animationFrameId = null;  // ID for the game loop animation frame
+        let isTimerInitialized = false; // Flag to track if timer has started this session
+        const GAME_DURATION = 5 * 60; // 5 minutes in seconds
+
+        // --- Game Pieces --- (Class Piece remains the same)
+        class Piece {
+             constructor(shape, context) { this.shape = shape; this.context = context; this.typeId = shape.flat().find(val => val > 0) || 0; this.color = COLORS[this.typeId]; this.x = Math.floor(COLS / 2) - Math.floor(this.shape[0].length / 2); this.y = 0; }
+             draw() { if (!this.color) return; this.context.fillStyle = this.color; this.shape.forEach((row, y) => { row.forEach((value, x) => { if (value > 0) { this.context.fillRect(this.x + x, this.y + y, 1, 1); } }); }); }
+             drawNext() { if (!this.color) return; nextContext.fillStyle = this.color; const sX = Math.floor((NEXT_COLS - this.shape[0].length) / 2); const sY = Math.floor((NEXT_ROWS - this.shape.length) / 2); this.shape.forEach((row, y) => { row.forEach((value, x) => { if (value > 0) { nextContext.fillRect(sX + x, sY + y, 1, 1); } }); }); }
+             move(dx, dy) { this.x += dx; this.y += dy; }
+             rotate() { if (this.typeId === 7) return; const N = this.shape.length; const result = Array.from({ length: N }, () => Array(N).fill(0)); for (let i = 0; i < N; i++) { for (let j = 0; j < N; j++) { if (this.shape[i][j]) { result[j][N - 1 - i] = this.shape[i][j]; } } } this.shape = result; }
+        }
+
+        // --- Game Logic --- (createBoard, drawBoard, draw, isValidMove, rotatePiece, movePiece remain the same)
+        function createBoard() { return Array.from({ length: ROWS }, () => Array(COLS).fill(0)); }
+        function drawBoard() { board.forEach((row, y) => { row.forEach((value, x) => { if (value > 0) { context.fillStyle = COLORS[value]; context.fillRect(x, y, 1, 1); } }); }); }
+        function draw() { context.fillStyle = '#000'; context.fillRect(0, 0, canvas.width / BLOCK_SIZE, canvas.height / BLOCK_SIZE); drawBoard(); if(currentPiece) { currentPiece.draw(); } nextContext.fillStyle = '#000'; nextContext.fillRect(0, 0, nextCanvas.width / NEXT_BLOCK_SIZE, nextCanvas.height / NEXT_BLOCK_SIZE); if (nextPiece) { nextPiece.drawNext(); } }
+        function isValidMove(piece, newX, newY, newShape) { const shape = newShape || piece.shape; for (let y = 0; y < shape.length; y++) { for (let x = 0; x < shape[y].length; x++) { if (shape[y][x] > 0) { let bX = newX + x; let bY = newY + y; if (bX < 0 || bX >= COLS || bY >= ROWS) { return false; } if (bY >= 0 && bY < ROWS && board[bY][bX] > 0) { return false; } } } } return true; }
+        function rotatePiece() { if (!currentPiece) return; const oShape = JSON.parse(JSON.stringify(currentPiece.shape)); const oX = currentPiece.x; currentPiece.rotate(); let kX = 0; let kY = 0; if (!isValidMove(currentPiece, currentPiece.x, currentPiece.y, currentPiece.shape)) { const kicks = [ { x: 1, y: 0 }, { x: -1, y: 0 }, { x: 2, y: 0 }, { x: -2, y: 0 }, { x: 0, y: -1 }, { x: 1, y: -1 }, { x: -1, y: -1 } ]; let found = false; for (const k of kicks) { if (isValidMove(currentPiece, currentPiece.x + k.x, currentPiece.y + k.y, currentPiece.shape)) { kX = k.x; kY = k.y; found = true; break; } } if (!found) { currentPiece.shape = oShape; currentPiece.x = oX; return; } } currentPiece.move(kX, kY); }
+        function movePiece(direction) { if (!currentPiece) return; if (isValidMove(currentPiece, currentPiece.x + direction, currentPiece.y, currentPiece.shape)) { currentPiece.move(direction, 0); } }
+
+        // --- Updated dropPiece, freezePiece, clearLines, calculateScore, spawnPiece ---
+        function dropPiece(manual = false) {
+            if (!currentPiece || gameOver) return;
+            if (isValidMove(currentPiece, currentPiece.x, currentPiece.y + 1, currentPiece.shape)) {
+                currentPiece.move(0, 1);
+                if (manual) { score += 1; updateInfo(); dropCounter = 0; }
+            } else {
+                freezePiece();
+                clearLines();
+                if (!gameOver) { spawnPiece(); }
+            }
+            if (!manual) { dropCounter = 0; }
+        }
+        function freezePiece() { if (!currentPiece) return; currentPiece.shape.forEach((row, y) => { row.forEach((value, x) => { if (value > 0) { let bY = currentPiece.y + y; let bX = currentPiece.x + x; if (bY >= 0 && bY < ROWS && bX >= 0 && bX < COLS) { board[bY][bX] = currentPiece.typeId; } } }); }); currentPiece = null; }
+        function clearLines() { let cleared = 0; for (let y = ROWS - 1; y >= 0; ) { if (board[y].every(v => v > 0)) { cleared++; board.splice(y, 1); board.unshift(Array(COLS).fill(0)); } else { y--; } } if (cleared > 0) { score += calculateScore(cleared); lines += cleared; const newLevel = Math.floor(lines / 10) + 1; if (newLevel > level) { level = newLevel; dropInterval = Math.max(100, 1000 - (level - 1) * 50); console.log(`Level Up: ${level}, Interval: ${dropInterval}`); } updateInfo(); } }
+        function calculateScore(linesCleared) { switch (linesCleared) { case 1: return 40 * level; case 2: return 100 * level; case 3: return 300 * level; case 4: return 1200 * level; default: return 0; } }
+        function spawnPiece() { if (gameOver) return; const nextIdx = Math.floor(Math.random() * (SHAPES.length - 1)) + 1; if (!nextPiece) { const firstIdx = Math.floor(Math.random() * (SHAPES.length - 1)) + 1; currentPiece = new Piece(SHAPES[firstIdx], context); } else { currentPiece = nextPiece; currentPiece.context = context; currentPiece.x = Math.floor(COLS / 2) - Math.floor(currentPiece.shape[0].length / 2); currentPiece.y = 0; } nextPiece = new Piece(SHAPES[nextIdx], nextContext); if (!isValidMove(currentPiece, currentPiece.x, currentPiece.y, currentPiece.shape)) { endGame("overflow"); } }
+
+        // --- updateInfo, updateTimerDisplay ---
+        function updateInfo() { scoreElement.textContent = score; linesElement.textContent = lines; levelElement.textContent = level; }
+        function updateTimerDisplay() { const displayTime = Math.max(0, remainingTime); const minutes = Math.floor(displayTime / 60).toString().padStart(2, '0'); const seconds = (displayTime % 60).toString().padStart(2, '0'); timerElement.textContent = `${minutes}:${seconds}`; }
+
+        // --- Timer Logic ---
+        function initializeTimer() {
+            // Only set the time and start the interval if it hasn't been done yet
+            if (!isTimerInitialized) {
+                console.log("Initializing timer for the first time this session.");
+                remainingTime = GAME_DURATION;
+                updateTimerDisplay(); // Show initial 5:00
+
+                gameTimerInterval = setInterval(() => {
+                    if (remainingTime <= 0) { // Check if time is already up
+                        endGame("timesup"); // End game if time ran out
+                        return; // Stop further processing in this interval tick
+                    }
+
+                    remainingTime--; // Decrement time
+                    updateTimerDisplay(); // Update display
+
+                    // Check again after decrementing
+                    if (remainingTime < 0) {
+                        endGame("timesup");
+                    }
+                }, 1000);
+
+                isTimerInitialized = true; // Mark timer as initialized for this session
+            } else {
+                 console.log("Timer already initialized this session.");
+                 // If timer is already running, ensure the display is up-to-date
+                 // This handles cases where a game ends by overflow and restarts
+                 updateTimerDisplay();
+            }
+        }
+
+        function stopTimerInterval() {
+            // Stops the interval callback, but doesn't reset isTimerInitialized
+            if (gameTimerInterval) {
+                clearInterval(gameTimerInterval);
+                gameTimerInterval = null;
+                console.log("Timer interval stopped.");
+            }
+        }
+
+        // --- Animation Frame Logic ---
+         function stopGameLoop() { if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; } }
+
+        // --- Game Loop ---
+        function gameLoop(time = 0) {
+            // Stop loop if game is over OR if time has run out (check remainingTime)
+            if (gameOver || (isTimerInitialized && remainingTime < 0)) {
+                 console.log("Game loop stopping.");
+                 return;
+            }
+
+            if (!lastTime) { lastTime = time; }
+            const deltaTime = time - lastTime;
+            lastTime = time;
+            dropCounter += deltaTime;
+
+            if (dropCounter > dropInterval) {
+                if (currentPiece) { dropPiece(false); }
+                dropCounter = 0;
+            }
+
+            draw();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- Game Control ---
+        function startGame() {
+            console.log("Starting game...");
+            // Stop previous game loop if running
+            stopGameLoop();
+
+            // Reset game elements
+            board = createBoard();
+            score = 0;
+            lines = 0;
+            level = 1;
+            gameOver = false; // Reset game over flag
+            gamePaused = false;
+            dropCounter = 0;
+            dropInterval = 1000;
+            lastTime = 0;
+            currentPiece = null;
+            nextPiece = null;
+
+            messageOverlay.style.display = 'none'; // Hide overlay
+            restartBtn.style.display = 'none';
+            homepageLink.style.display = 'none';
+
+            // Initialize and start the timer ONLY if it hasn't been started yet this session
+            initializeTimer();
+
+            // Spawn pieces and update info
+            spawnPiece();
+            updateInfo();
+
+            // Start the game loop only if the timer hasn't run out
+             if (remainingTime >= 0) {
+                lastTime = performance.now();
+                animationFrameId = requestAnimationFrame(gameLoop);
+                console.log("Game loop started.");
+            } else {
+                 console.log("Timer already expired, not starting game loop.");
+                 // Ensure the "Time's Up" message is shown if trying to start after time expired
+                 endGame("timesup");
+            }
+        }
+
+        function endGame(reason) {
+            // Prevent multiple calls or ending after time is already up
+            if (gameOver && reason === "overflow") return;
+            // Allow timesup to override overflow if timer runs out during game over screen
+            // if (gameOver && reason === "timesup" && remainingTime > 0) return;
+
+
+            console.log("Ending game:", reason);
+            gameOver = true; // Set game over flag (important!)
+            stopGameLoop(); // Stop piece movement/drawing loop
+
+            messageOverlay.style.display = 'flex'; // Show overlay
+
+            if (reason === "overflow") {
+                // Game ended due to pieces stacking up
+                // DO NOT stop the timer interval here. Let it run.
+                messageText.textContent = "GAME OVER!";
+                restartBtn.style.display = 'block'; // Show Restart button
+                homepageLink.style.display = 'none'; // Hide Homepage link
+                updateTimerDisplay(); // Update display to show time remaining when game ended
+
+            } else if (reason === "timesup") {
+                // Game ended due to timer running out
+                stopTimerInterval(); // Stop the timer interval now
+                remainingTime = 0; // Ensure time is exactly 0
+                messageText.textContent = "Zaman Bitti! Anasayfaya Dönün";
+                restartBtn.style.display = 'none'; // Hide Restart button
+                homepageLink.style.display = 'block'; // Show Homepage link
+                updateTimerDisplay(); // Update display to show 00:00
+            }
+        }
+
+        // --- Event Listeners --- (Keyboard and Button listeners remain the same)
+         document.addEventListener('keydown', (event) => {
+            // Ignore input if game is over OR if time has run out
+            if (gameOver || (isTimerInitialized && remainingTime < 0) || gamePaused || !currentPiece) return;
+
+            switch (event.key) {
+                case 'ArrowLeft': case 'a': movePiece(-1); break;
+                case 'ArrowRight': case 'd': movePiece(1); break;
+                case 'ArrowDown': case 's': dropPiece(true); break;
+                case 'ArrowUp': case 'w': rotatePiece(); break;
+                case ' ': // Hard drop
+                    while (isValidMove(currentPiece, currentPiece.x, currentPiece.y + 1, currentPiece.shape)) { currentPiece.move(0, 1); score += 2; }
+                    freezePiece(); clearLines(); spawnPiece(); updateInfo(); dropCounter = 0;
+                    break;
+            }
+             // Only draw if the game loop isn't running (e.g., during game over screen)
+             // or if the game is actively running
+             if (!gameOver && !(isTimerInitialized && remainingTime < 0)) draw();
+        });
+        document.getElementById('leftBtn').addEventListener('click', () => { if (!gameOver && !(isTimerInitialized && remainingTime < 0) && !gamePaused && currentPiece) { movePiece(-1); if (!gameOver) draw(); } });
+        document.getElementById('rightBtn').addEventListener('click', () => { if (!gameOver && !(isTimerInitialized && remainingTime < 0) && !gamePaused && currentPiece) { movePiece(1); if (!gameOver) draw(); } });
+        document.getElementById('downBtn').addEventListener('click', () => { if (!gameOver && !(isTimerInitialized && remainingTime < 0) && !gamePaused && currentPiece) { dropPiece(true); if (!gameOver) draw(); } });
+        document.getElementById('rotateBtn').addEventListener('click', () => { if (!gameOver && !(isTimerInitialized && remainingTime < 0) && !gamePaused && currentPiece) { rotatePiece(); if (!gameOver) draw(); } });
+
+        // Restart button listener
+        restartBtn.addEventListener('click', startGame);
+
+        // Homepage link listener (no specific JS needed, the link navigation handles it)
+        // homepageLink.addEventListener('click', () => { /* Default link behavior */ });
+
+
+        // --- Initialisation ---
+        window.onload = () => {
+             board = createBoard();
+             // Don't spawn pieces yet, wait for first start
+             // spawnPiece();
+             updateInfo(); // Show initial 0s
+             draw(); // Draw empty board
+
+             // Show initial message requesting restart
+             messageText.textContent = "Press RESTART to Play!";
+             restartBtn.style.display = 'block'; // Show restart initially
+             homepageLink.style.display = 'none';
+             messageOverlay.style.display = 'flex';
+
+             // Set initial timer display but don't start interval yet
+             remainingTime = GAME_DURATION;
+             updateTimerDisplay();
+        };
+
+    </script>
+
+</body>
+</html>

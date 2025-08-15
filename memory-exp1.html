@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bellek Deneyi</title>
+	<link rel="preco bunnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; /* Use Roboto */; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f8f9fa;; }
+        .container { background: #fff;; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; max-width: 600px; width: 90%; }
+        .screen { display: none; } /* Hide all screens initially */
+        .screen.active { display: block; } /* Show active screen */
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; margin: 10px 5px; border: none; border-radius: 5px; background-color: #1a73e8; color: white; }
+        button:hover { background-color: b3b1b1; }
+        button:disabled { background-color: #9c9c9c; cursor: not-allowed; }
+		
+        #wordDisplay, #wordDisplay2 {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+            min-height: 1.5em;
+        }
+		
+        #timerDisplay,
+        #recallTimerDisplay {
+             font-size: 1.1em;
+            margin-bottom: 20px;
+            color: #5f6368; /* Medium gray */
+             font-family: 'Roboto Mono', monospace; /* Use Roboto Mono */
+             font-weight: 500;
+			 background-color: #e8f0fe; /* Light blue background */
+             color: #1a73e8; /* Google blue text */
+             padding: 8px 12px;
+             border-radius: 4px;
+             display: inline-block;
+             margin-bottom: 20px;
+        }
+		
+        .game-card { border: 1px solid #ccc; padding: 15px; margin: 10px auto; border-radius: 5px; background-color: #f9f9f9; width: 80%; font-weight: 900; font-size: larger;}
+        .recall-input { display: block; width: calc(100% - 22px); margin: 5px auto; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+        .recognition-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; flex-direction: row-reverse;  }
+        .recognition-item .word { flex-grow: 1; text-align: center; font-size: 1.2em; font-weight: normal; margin-right: 15px;
+    margin-left: 25px;}
+		
+        .recognition-item .seen-buttons button, .recognition-item .likert-scale button { 
+			padding: 8px 12px;
+			font-size: 0.9em;
+			margin: 2px;
+			border-radius: 4px;
+			border: 2px solid #dadce0;
+			background-color: transparent;
+			color: #1a73e8;
+			box-shadow: none;
+			transition: background-color 0.2s, border-color 0.2s; 
+		}
+        .recognition-item .likert-scale { margin-left: 10px; }
+        .likert-scale button.selected { background-color: #28a745; }
+		
+        .seen-buttons button.selected, .likert-scale button.selected { 
+		background-color: #1a73e8;
+		color: white; 
+		}
+		
+        #recognitionList { max-height: 600px; overflow-y: auto; margin-top: 15px; border: 1px solid #ccc; padding: 10px; max-width: 600px;}
+        #resultsArea { text-align: left; margin-top: 20px; }
+        #resultsArea h3 { text-align: center; }
+        .game-card-buttons button { margin: 0 10px; padding: 8px 15px;}
+	.likert-scale { display: flex; flex-direction: row; }
+
+	.return-home-button {
+            position: fixed; /* Keep the button in the same place on the screen */
+            top: 1rem; /* 16px from the top */
+            left: 1rem; /* 16px from the left */
+            width: 48px; /* Set width */
+            height: 48px; /* Set height */
+            border-radius: 50%; /* Make it circular */
+            background-color: #2563eb; /* Blue background color */
+            color: white; /* White text/emoji color */
+            display: flex; /* Use flexbox to center content */
+            align-items: center; /* Vertically center content */
+            justify-content: center; /* Horizontally center content */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add a shadow */
+            z-index: 50; /* Ensure it stays on top of other elements */
+            text-decoration: none; /* Remove underline from link */
+            font-size: 1.5rem; /* Adjust emoji size */
+            transition: background-color 0.2s ease-in-out; /* Smooth transition for hover effect */
+        }
+
+        /* Hover effect for the button */
+        .return-home-button:hover {
+            background-color: #1d4ed8; /* Darker blue on hover */
+        }
+    </style>
+</head>
+<body>
+	<a href="/experiments-homepage/home.html" class="return-home-button" aria-label="Anasayfaya Dön">
+	↩
+	</a>
+	<div class="container">
+        <div id="screen1" class="screen active">
+            <h2>Yönerge</h2>
+            <p>Bu bir bellek deneyidir. Test değildir, belleğinizi ölçmez. Amaç belleğin nasıl çalıştığına dair bilgi edinmektir. Deneyde verilen yönergelere uymanız önemlidir. Katılımınız için şimdiden teşekkür ederiz.</p>
+            <p id="instructionText1">“Şimdi sizlere birer saniye aralıklarla 14 kelimelik bir liste sunulacaktır. Kelimeleri dikkatle inceleyin aklınızda tutmaya çalışın, daha sonra bir hatırlama testi verilecektir</p>
+            <button id="startTestBtn">Testi Başlat</button>
+        </div>
+
+        <div id="screen2" class="screen">
+            <h2 id="listTitle1">Kelime:</h2>
+            <div id="wordDisplay"></div>
+            <p>Bu kelimeyi hatırlayın.</p>
+        </div>
+
+        <div id="screen3" class="screen">
+            <h2>Yönerge</h2>
+            <p id="instructionText2">Az önce görmüş olduğunuz kelimeler, asıl listeyi sorunsuz şekilde uygulamak için sadece
+alıştırma amacıyla verildi. Hatırlama testine dahil değildir. Testte sorumlu olacağınız asıl
+liste şimdi sunulacaktır. Dikkatle inceleyin ve aklınızda tutmaya çalışın.</p>
+            <button id="startList2Btn">Asıl Teste Geç</button>
+        </div>
+
+        <div id="screen4" class="screen">
+             <h2 id="listTitle2">Kelime:</h2>
+            <div id="wordDisplay2"></div>
+             <p>Bu kelimeyi hatırlayın.</p>
+        </div>
+
+        <div id="screen5" class="screen">
+            <h2>Oyun Zamanı!</h2>
+            <div id="timerDisplay">Kalan Süre: 60s</div>
+			<p>Aşağıda ülkelerin başkentleri ile eşleştirildiğini görüyorsunuz. Bunların kimisi hatalıdır.</p>
+		<p>Doğru olanların her biri için “doğru” seçeneğini işaretleyiniz. Yanlış olanların her biri
+için de “yanlış” seçeneğini işaretleyiniz.</p> 
+		<p> Ülke-başkent isimlerinin bulunduğu kutu doğru
+yanıtlarınız için yeşil, hatalı yanıtlarınız için kırmızı renge dönecektir. Süreniz bir
+dakikadır.</p>
+			<h3 style="font-weight: 400;"> (Başkent - Ülke) </h3>
+            <div id="gameArea">
+                </div>
+        </div>
+
+        <div id="screen6" class="screen">
+            <h2>Serbest Hatırlama</h2>
+            <div id="recallTimerDisplay">Kalan Süre: 180s</div>
+            <p>Şimdi her iki listedeki kelimelerden aklınızda kalan kelimeleri az sonra önünüze
+gelecek ekrandaki boşluğa yazınız. Yazdığınız her bir kelimeden sonra “Enter” tuşuna
+basarak yanıtınızı kaydediniz. Süreniz 3 dakikadır (180 saniye).</p> 
+		<p>Enter tuşuna bastığınızda yazdığınız kelime ekrandan kaybolacak ve kaydedilecektir.
+Bitirmek için “Tamamladım” tuşuna basınız.</p>
+            <form id="recallForm">
+                <input type="text" id="recallInput" class="recall-input" placeholder="Hatırladığınız kelimeleri yazın ve Enter'a basın" autocomplete="off">
+            </form>
+            <div id="recalledWordsList" style="margin-top:10px; text-align:left;"><strong>Hatırlanan Kelimeler:</strong></div>
+            <button id="finishRecallBtn">Tamamladım</button>
+        </div>
+
+        <div id="screen7" class="screen">
+            <h2>Tanıma Testi</h2>
+                <p>“Size şimdi bir tanıma testi vereceğim. Bu testteki kelimelerin bazıları gördüğünüz iki listedeki kelimelerdir; bazıları ise o iki listede görmediğiniz yeni kelimelerdir.</p> 
+		<p>Yapmanızı istediğim şey her bir kelimeyi dikkatle inceledikten sonra, o kelimenin listelerde gördüğünüz kelimelerden birisi olup olmadığına karar vermenizdir.</p> 
+		<p>Size gösterilen listede olduğuna karar verdiğiniz kelimeler için “GÖRDÜM” kutucuğunu, olmadığına karar verdiğiniz kelimeler için ise “GÖRMEDİM” kutucuğunu işaretleyiniz.</p>  
+		<p>En sağda gördüğünüz ölçek üzerinde ise o kelimeyi gördüğünüzden veya görmediğinizden ne kadar emin olduğunuzu belirtmenizi istiyoruz. 1: “Gördüğümden veya görmediğimden hiç emin değilim”; 4: “Gördüğümden veya görmediğimden kesinlikle eminim”</p>
+			 <div style="justify-content: center; display: flex; margin-bottom: 15px;">
+			 	 <div id="recognitionList">
+                		 </div>
+			</div>
+            <button id="finishRecognitionBtn" disabled>Testi Bitir</button>
+        </div>
+
+        <div id="screen8" class="screen">
+            <h2>Test Sonuçları</h2>
+            <div id="resultsArea">
+                </div>
+            <button id="resetTestBtn">Testi Tekrarla</button>
+            <button id="downloadResultsBtn">Sonuçları İndir</button>
+			
+        </div>
+		
+
+    </div>
+
+   <script>
+	   // --- Configuration ---
+        const list1Words = [
+  "Yangın",
+  "Kaşık",
+  "Delik",
+  "Kutu",
+  "Saray",
+  "Fırın",
+  "Motor",
+  "Dudak",
+  "Şarap",
+  "Göğüs",
+  "Demir",
+  "Çiçek",
+  "Asker",
+  "Rüzgar"
+]; // Original List 1
+        const list2Words = [
+  "Gölge",
+  "Çanta",
+  "Paket",
+  "Alet",
+  "Kapak",
+  "Radyo",
+  "Şeker",
+  "Ayna",
+  "Yolcu",
+  "Petrol",
+  "Otel",
+  "Kumaş",
+  "Altın",
+  "Cami"
+]; // Original List 2
+        const recognitionWordsAll = [
+  'Salon',
+  'Erkek',
+  'Koku',
+  'Resim',
+  'Liste',
+  'Hafta',
+  'Para',
+  'Sağlık',
+  'Sayfa',
+  'Olay',
+  'Mutfak',
+  'Adam',
+  'Uzman',
+  'Beyaz',
+  'Dergi',
+  'Boşluk',
+  'Ağaç',
+  'Beyin',
+  'Kağıt',
+  'Lise',
+  'Canlı',
+  'Kardeş',
+  'Komşu',
+  'Masa',
+  'Plan',
+  'Kural',
+  'Müzik',
+  'Cadde',
+"Yangın",
+  "Kaşık",
+  "Delik",
+  "Kutu",
+  "Saray",
+  "Fırın",
+  "Motor",
+  "Dudak",
+  "Şarap",
+  "Göğüs",
+  "Demir",
+  "Çiçek",
+  "Asker",
+  "Rüzgar",
+"Gölge",
+  "Çanta",
+  "Paket",
+  "Alet",
+  "Kapak",
+  "Radyo",
+  "Şeker",
+  "Ayna",
+  "Yolcu",
+  "Petrol",
+  "Otel",
+  "Kumaş",
+  "Altın",
+  "Cami"
+];
+        const wordDisplayTime = 2000;
+        const wordIntervalTime = 1000;
+        const gameTotalTime = 60;
+        const recallTime = 180;
+        const cardsPerGroup = 5;
+
+        // --- State Variables ---
+	let listOrderSwapped = false;
+        let currentScreen = 'screen1';
+        let wordTimeout, intervalTimeout, gameTimerInterval, recallTimerInterval;
+        let list1ShownWords = []; // Words shown in the *first* part of the test run
+        let list2ShownWords = []; // Words shown in the *second* part of the test run
+	if(sessionStorage.getItem("isListOrderSwapped") === null){
+		sessionStorage.setItem('isListOrderSwapped', JSON.stringify({"value":false}));
+	}
+	else {
+		const lstOrderJson = sessionStorage.getItem("isListOrderSwapped");
+	   	const lstOrder = JSON.parse(lstOrderJson);
+        	listOrderSwapped = lstOrder["value"];
+	}
+	   // Track if List2 is shown before List1
+        let gameData = [];
+        let originalGameData = [];
+        let currentGameCardIndex = 0;
+        let gameScore = 0;
+        let gameTotalAnswered = 0;
+        let gameTimeLeft = gameTotalTime;
+        let recalledWords = [];
+        let recallTimeLeft = recallTime;
+        let recognitionAnswers = {};
+
+
+        // --- DOM Elements ---
+        const screens = document.querySelectorAll('.screen');
+        const wordDisplayEl = document.getElementById('wordDisplay');
+        const wordDisplayEl2 = document.getElementById('wordDisplay2');
+        const listTitle1El = document.getElementById('listTitle1');
+        const listTitle2El = document.getElementById('listTitle2');
+        const instructionText1El = document.getElementById('instructionText1');
+        const instructionText2El = document.getElementById('instructionText2');
+        const timerDisplayEl = document.getElementById('timerDisplay');
+        const recallTimerDisplayEl = document.getElementById('recallTimerDisplay');
+        const gameAreaEl = document.getElementById('gameArea');
+        const recallForm = document.getElementById('recallForm');
+        const recallInput = document.getElementById('recallInput');
+        const recalledWordsListEl = document.getElementById('recalledWordsList');
+        const recognitionListEl = document.getElementById('recognitionList');
+        const finishRecognitionBtn = document.getElementById('finishRecognitionBtn');
+        const resultsAreaEl = document.getElementById('resultsArea');
+
+        // --- Utility Functions ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function switchScreen(screenId) {
+            screens.forEach(screen => screen.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            currentScreen = screenId;
+            console.log("Switched to screen:", screenId);
+
+             if (screenId === 'screen5') startGame();
+             if (screenId === 'screen6') startRecallTimer();
+             if (screenId === 'screen7') populateRecognitionTest();
+        }
+		
+		/*
+		document.getElementById("startTetrisBtn").addEventListener("click", () => {
+			switchScreen("screen9");
+			setTimeout(() => {switchScreen("screen10")}, 5*60*1000);
+		})
+		*/
+
+        function displayWord(wordList, displayElement, index, onComplete) {
+            if (index >= wordList.length) {
+                displayElement.textContent = '';
+                if(onComplete) onComplete();
+                return;
+            }
+            displayElement.textContent = '';
+            intervalTimeout = setTimeout(() => {
+                 displayElement.textContent = wordList[index];
+                 console.log("Displaying:", wordList[index]);
+                 wordTimeout = setTimeout(() => {
+                    displayWord(wordList, displayElement, index + 1, onComplete);
+                }, wordDisplayTime);
+            }, wordIntervalTime);
+        }
+
+         // --- Test Flow Functions (Modified for List Swapping) ---
+
+        // Step 1 -> 2
+        document.getElementById('startTestBtn').addEventListener('click', () => {
+            switchScreen('screen2');
+            const currentList1 = listOrderSwapped ? list2Words : list1Words;
+            const list1Name = listOrderSwapped ? "List 2" : "List 1";
+
+            //listTitle1El.textContent = `Word List (Part 1 - ${list1Name})`; // Update title
+            list1ShownWords = shuffleArray([...currentList1]); // Store the *shown* words
+            console.log(`Showing ${list1Name} as Part 1:`, list1ShownWords);
+
+            displayWord(list1ShownWords, wordDisplayEl, 0, () => {
+                 setTimeout(() => switchScreen('screen3'), 500);
+            });
+        });
+
+         // Step 3 -> 4
+        document.getElementById('startList2Btn').addEventListener('click', () => {
+            switchScreen('screen4');
+            const currentList2 = listOrderSwapped ? list1Words : list2Words;
+             const list2Name = listOrderSwapped ? "List 1" : "List 2";
+
+             //listTitle2El.textContent = `Word List (Part 2 - ${list2Name})`; // Update title
+             list2ShownWords = shuffleArray([...currentList2]); // Store the *shown* words
+            console.log(`Showing ${list2Name} as Part 2:`, list2ShownWords);
+
+             displayWord(list2ShownWords, wordDisplayEl2, 0, () => {
+                 setTimeout(() => switchScreen('screen5'), 500);
+            });
+        });
+
+        // --- Step 5: Game Logic (Unchanged - Infinite Loop) ---
+        function setupGameCards() {
+             originalGameData = [
+                { text: "Paris - Fransa", correct: true }, { text: "Londra - İspanya", correct: false }, { text: "Roma - İtalya", correct: true }, { text: "Berlin - Polonya", correct: false }, { text: "Madrid - Portekiz", correct: false },
+                { text: "Ankara - Türkiye", correct: true }, { text: "Atina - Mısır", correct: false }, { text: "Tokyo - Çin", correct: false }, { text: "Moskova - Rusya", correct: true }, { text: "Kahire - Yunanistan", correct: false },
+                { text: "Ottawa - ABD", correct: false }, { text: "Kanberra - Avusturalya", correct: true }, { text: "Beijing - Japonya", correct: false }, { text: "Yeni Delhi - Hindistan", correct: true }, { text: "Mexico City - Brezilya", correct: false },
+                { text: "Lizbon - İspanya", correct: false }, { text: "Oslo - Norveç", correct: true }, { text: "Stokholm - Danimarka", correct: false }, { text: "Helsinki - Finlandiya", correct: true }, { text: "Viyana - Avusturya", correct: true },
+                { text: "Brüksel - Hollanda", correct: false }, { text: "Varşova - Polonya", correct: true }, { text: "Prag - Macaristan", correct: false }, { text: "Budapeşte - Çek Cumhuriyeti", correct: false }, { text: "Dublin - İrlanda", correct: true },
+            ];
+            gameData = shuffleArray([...originalGameData]);
+            currentGameCardIndex = 0; gameScore = 0; gameTotalAnswered = 0;
+            console.log("Game cards set up. Total unique cards:", originalGameData.length);
+        }
+
+        function displayCardGroup() {
+            gameAreaEl.innerHTML = '';
+             if (currentGameCardIndex >= gameData.length) {
+                 console.log("Looping game cards...");
+                 currentGameCardIndex = 0;
+                 gameData = shuffleArray([...originalGameData]);
+             }
+            const endIndex = Math.min(currentGameCardIndex + cardsPerGroup, gameData.length);
+             if (currentGameCardIndex >= gameData.length) { console.error("Looping error"); return; }
+
+            for (let i = currentGameCardIndex; i < endIndex; i++) {
+                 if(i >= gameData.length) { console.warn("Index out of bounds:", i); continue; };
+                const card = gameData[i];
+                const cardDiv = document.createElement('div');
+                cardDiv.classList.add('game-card');
+                cardDiv.innerHTML = `<p>${card.text}</p><div class="game-card-buttons"><button onclick="handleGameAnswer(${i}, true)">Doğru</button><button onclick="handleGameAnswer(${i}, false)">Yanlış</button></div>`;
+                gameAreaEl.appendChild(cardDiv);
+            }
+        }
+
+        function handleGameAnswer(cardIndex, userAnswer) {
+             if (gameTimeLeft <= 0) return;
+             let isCardVisible = false;
+             const visibleCards = gameAreaEl.children;
+             for(let i = 0; i < visibleCards.length; i++) {
+                 if (currentGameCardIndex + i === cardIndex) {
+                      isCardVisible = true;
+                      const cardDiv = visibleCards[i];
+                      cardDiv.querySelectorAll('button').forEach(btn => btn.disabled = true);
+                       gameTotalAnswered++;
+                       if (userAnswer === gameData[cardIndex].correct) {
+                           gameScore++; cardDiv.style.backgroundColor = '#d4edda'; console.log("Card", cardIndex, "Correct!");
+                       } else { cardDiv.style.backgroundColor = '#f8d7da'; console.log("Card", cardIndex, "Wrong."); }
+                      break;
+                 }
+             }
+              if (!isCardVisible) { console.log("Answer ignored. Index:", cardIndex); return; }
+             const allCurrentGroupAnswered = Array.from(visibleCards).every(child => child.querySelectorAll('button:disabled').length > 0);
+             if (allCurrentGroupAnswered) {setTimeout( moveToNextGroup, 500) }
+        }
+
+         function moveToNextGroup() {
+             currentGameCardIndex += cardsPerGroup;
+             if (gameTimeLeft > 0) { displayCardGroup(); }
+         }
+
+        function startGame() {
+            console.log("Starting game...");
+            setupGameCards();
+            gameTimeLeft = gameTotalTime;
+            updateGameTimerDisplay();
+            displayCardGroup();
+            clearInterval(gameTimerInterval);
+            gameTimerInterval = setInterval(() => {
+                gameTimeLeft--; updateGameTimerDisplay();
+                if (gameTimeLeft <= 0) { endGame("Süre Doldu"); }
+            }, 1000);
+        }
+
+         function updateGameTimerDisplay() { timerDisplayEl.textContent = `Kalan Süre: ${gameTimeLeft}s`; }
+
+        function endGame(reason) {
+             console.log("Oyun bitti:", reason);
+             clearInterval(gameTimerInterval);
+             gameAreaEl.querySelectorAll('button').forEach(btn => btn.disabled = true);
+             const endMessage = document.createElement('p');
+             endMessage.style.fontWeight = 'bold'; endMessage.textContent = `Oyun Bitti! ${reason}`;
+              if(gameAreaEl.firstChild) { gameAreaEl.insertBefore(endMessage, gameAreaEl.firstChild); }
+              else { gameAreaEl.appendChild(endMessage); }
+              timerDisplayEl.textContent = `Kalan Süre: 0s`;
+             setTimeout(() => switchScreen('screen6'), 2000);
+        }
+
+         // --- Step 6: Free Recall Logic (Unchanged) ---
+         function startRecallTimer() {
+             console.log("Starting recall timer...");
+             recalledWords = []; recalledWordsListEl.innerHTML = '<strong>Hatırlanan Kelimeler:</strong>';
+             recallInput.value = ''; recallInput.disabled = false;
+             document.getElementById('finishRecallBtn').disabled = false;
+             recallTimeLeft = recallTime; updateRecallTimerDisplay();
+             clearInterval(recallTimerInterval);
+             recallTimerInterval = setInterval(() => {
+                 recallTimeLeft--; updateRecallTimerDisplay();
+                 if (recallTimeLeft <= 0) { endRecall("Süre Doldu"); }
+             }, 1000);
+         }
+         function updateRecallTimerDisplay() { recallTimerDisplayEl.textContent = `Kalan Süre: ${recallTimeLeft}s`; }
+         recallForm.addEventListener('submit', (e) => {
+            e.preventDefault(); const word = recallInput.value.trim();
+            if (word && !recalledWords.includes(word)) {
+                recalledWords.push(word); const listItem = document.createElement('div');
+                listItem.textContent = word; recalledWordsListEl.appendChild(listItem); console.log("Recalled:", word);
+            }
+            recallInput.value = '';
+            if (recalledWords.length >= (list1Words.length + list2Words.length)) { endRecall("Max words entered"); }
+         });
+         document.getElementById('finishRecallBtn').addEventListener('click', () => { endRecall("User finished"); });
+         function endRecall(reason) {
+             console.log("Recall ended:", reason); clearInterval(recallTimerInterval);
+             recallInput.disabled = true; document.getElementById('finishRecallBtn').disabled = true;
+             console.log("Final recalled words:", recalledWords);
+             setTimeout(() => switchScreen('screen7'), 1000);
+         }
+
+        // --- Step 7: Recognition Test Logic (Unchanged) ---
+         function populateRecognitionTest() {
+             console.log("Populating recognition test...");
+             recognitionListEl.innerHTML = ''; recognitionAnswers = {}; finishRecognitionBtn.disabled = true;
+             const wordsToTest = shuffleArray([...recognitionWordsAll]);
+             wordsToTest.forEach(word => {
+                 recognitionAnswers[word] = { seen: 'unanswered', confidence: 'unanswered' };
+                 const itemDiv = document.createElement('div'); itemDiv.classList.add('recognition-item');
+                 const seenButtonsDiv = document.createElement('div'); seenButtonsDiv.classList.add('seen-buttons');
+                 const sawBtn = document.createElement('button'); sawBtn.textContent = 'GÖRDÜM';
+                 sawBtn.onclick = () => handleRecognitionAnswer(word, 'seen', 'yes', itemDiv);
+                 const notSawBtn = document.createElement('button'); notSawBtn.textContent = 'GÖRMEDİM';
+                 notSawBtn.onclick = () => handleRecognitionAnswer(word, 'seen', 'no', itemDiv);
+                 seenButtonsDiv.appendChild(sawBtn); seenButtonsDiv.appendChild(notSawBtn);
+                 const wordSpan = document.createElement('span'); wordSpan.classList.add('word'); wordSpan.textContent = word;
+                 const likertDiv = document.createElement('div'); likertDiv.classList.add('likert-scale');
+                 for (let i = 1; i <= 4; i++) {
+                     const scaleBtn = document.createElement('button'); scaleBtn.textContent = i;
+                     scaleBtn.onclick = () => handleRecognitionAnswer(word, 'confidence', i, itemDiv);
+                     likertDiv.appendChild(scaleBtn);
+                 }
+                 itemDiv.appendChild(likertDiv); itemDiv.appendChild(seenButtonsDiv); itemDiv.appendChild(wordSpan);
+                 recognitionListEl.appendChild(itemDiv);
+             });
+              checkAllRecognitionAnswered();
+         }
+         function handleRecognitionAnswer(word, type, value, itemElement) {
+             console.log(`Answer for ${word}: ${type} = ${value}`); recognitionAnswers[word][type] = value;
+             if (type === 'seen') {
+                 const buttons = itemElement.querySelector('.seen-buttons').querySelectorAll('button');
+                 buttons.forEach(btn => btn.classList.remove('selected'));
+                 const targetButton = value === 'yes' ? buttons[0] : buttons[1]; targetButton.classList.add('selected');
+             } else if (type === 'confidence') {
+                 const buttons = itemElement.querySelector('.likert-scale').querySelectorAll('button');
+                 buttons.forEach(btn => btn.classList.remove('selected')); buttons[value - 1].classList.add('selected');
+             }
+             checkAllRecognitionAnswered();
+         }
+         function checkAllRecognitionAnswered() {
+             const allAnswered = Object.values(recognitionAnswers).every(answer => answer.seen !== 'unanswered') && Object.values(recognitionAnswers).every(answer => answer.confidence !== 'unanswered');
+             finishRecognitionBtn.disabled = !allAnswered; 
+		 console.log("All recognition questions answered:", allAnswered);
+         }
+         document.getElementById('finishRecognitionBtn').addEventListener('click', () => {
+             console.log("Recognition finished. Answers:", recognitionAnswers);
+             calculateAndShowResults(); switchScreen('screen8');
+         });
+
+        // --- Step 8: Results Logic (Modified for List Swapping) ---
+        function calculateAndShowResults() {
+            console.log("Calculating results... List order swapped:", listOrderSwapped);
+            resultsAreaEl.innerHTML = '';
+
+            // 1. Recall Analysis
+            // list1ShownWords always contains words shown FIRST (intended forget)
+            // list2ShownWords always contains words shown SECOND (intended remember)
+            let correctRecalls = 0;
+            let list1Recalls = 0; // Recalls from the list shown FIRST
+            let list2Recalls = 0; // Recalls from the list shown SECOND
+            let intrusionRecalls = 0;
+		
+            const uniqueRecalledWords = [...new Set(recalledWords.map(word => word.toUpperCase()))];
+		uniqueRecalledWords.forEach(word => {
+			if (list1ShownWords.some(x => x.toUpperCase() == word) || list2ShownWords.some(x => x.toUpperCase() == word)) {
+				correctRecalls++;
+			if (list1ShownWords.some(x => x.toUpperCase() == word)) list1Recalls++;
+			if (list2ShownWords.some(x => x.toUpperCase() == word)) list2Recalls++;
+			} else {
+			intrusionRecalls++;
+			}
+		});
+
+	    const storedDataString = sessionStorage.getItem('confirmationFormData');
+	    const receivedData = JSON.parse(storedDataString);
+
+		const name = receivedData["userName"];
+		
+
+            // Determine labels based on whether lists were swapped
+            const firstListName = listOrderSwapped ? "Liste 2" : "Liste 1";
+            const secondListName = listOrderSwapped ? "Liste 1" : "Liste 2";
+
+	    resultsAreaEl.innerHTML += `<h4 style="text-align: center;">(Ad-Soyad: ${name})</h4>`;
+
+            resultsAreaEl.innerHTML += `<h3>Serbest Hatırlama Sonuçları</h3>`;
+            resultsAreaEl.innerHTML += `<p><strong>Toplam Hatırlanan Kelime Sayısı:</strong> ${recalledWords.length}</p>`;
+		resultsAreaEl.innerHTML += `<p><strong>Toplam Hatırlanan Kelime Sayısı (Tekrarsız):</strong> ${uniqueRecalledWords.length}</p>`;
+            resultsAreaEl.innerHTML += `<p><strong>Doğru Hatırlanan Kelimeler:</strong> ${correctRecalls}</p>`;
+            // Label recalls based on presentation order and original list name
+            resultsAreaEl.innerHTML += `<p><strong>   -- İlk Gösterilenden (${firstListName}):</strong> ${list1Recalls}</p>`;
+            resultsAreaEl.innerHTML += `<p><strong>   -- İkinci Gösterilenden (${secondListName}):</strong> ${list2Recalls}</p>`;
+            resultsAreaEl.innerHTML += `<p><strong>Araya Girme Hataları (Listelerde olmayanlar)</strong>: ${intrusionRecalls}</p>`;
+            resultsAreaEl.innerHTML += `<p><strong>Girilen Kelimeler:</strong> ${recalledWords.join(', ') || 'None'}</p>`;
+		resultsAreaEl.innerHTML += `<p><strong>Girilen Kelimeler (Tekrarsız):</strong> ${uniqueRecalledWords.join(', ') || 'None'}</p><hr>`;
+            // 2. Game Statistics (Unchanged)
+            resultsAreaEl.innerHTML += `<h3>Oyun İstatistikleri</h3>`;
+            resultsAreaEl.innerHTML += `<p><strong>Toplam Cevaplanan Eşleşmeler: </strong>${gameTotalAnswered}</p>`;
+             const gameAccuracy = gameTotalAnswered > 0 ? ((gameScore / gameTotalAnswered) * 100).toFixed(1) : 0;
+            resultsAreaEl.innerHTML += `<p><strong>Doğru Cevaplar: </strong>${gameScore}</p>`;
+            resultsAreaEl.innerHTML += `<p><strong>Doğruluk: </strong>${gameAccuracy}%</p><hr>`;
+
+            // 3. Recognition Analysis (Unchanged - Checks against original lists)
+            let list1Hits = 0, list1Misses = 0;
+            let list2Hits = 0, list2Misses = 0;
+            let falseAlarms = 0, correctRejections = 0;
+
+            // We no longer combine the lists; keep them separate to check origin
+            // const allOriginalWords = [...list1Words, ...list2Words]; // REMOVE THIS LINE
+
+            Object.entries(recognitionAnswers).forEach(([word, answer]) => {
+                const inList1 = list1Words.includes(word);
+                const inList2 = list2Words.includes(word);
+                // Assuming a word is not in BOTH lists - standard for this type of task
+
+                let listStatus = "Hiçbirinde Yok"; // "Not in either"
+                if (inList1) {
+                    listStatus = "Liste 1";
+                } else if (inList2) {
+                    listStatus = "Liste 2";
+                }
+
+                const participantSaidSeen = (answer.seen === "yes");
+
+
+                // Update counters based on origin and response
+                if (inList1) {
+                    if (participantSaidSeen) {
+                        list1Hits++; // In List 1, said yes -> Hit for List 1
+                    } else {
+                        list1Misses++; // In List 1, said no -> Miss for List 1
+                    }
+                } else if (inList2) {
+                    if (participantSaidSeen) {
+                        list2Hits++; // In List 2, said yes -> Hit for List 2
+                    } else {
+                        list2Misses++; // In List 2, said no -> Miss for List 2
+                    }
+                } else { // The word was not in either list
+                    if (participantSaidSeen) {
+                        falseAlarms++; // Not in lists, said yes -> False Alarm
+                    } else {
+                        correctRejections++; // Not in lists, said no -> Correct Rejection
+                    }
+                }
+            });
+             resultsAreaEl.innerHTML += `<h3>Tanıma Testi Sonuçları</h3>`;
+             resultsAreaEl.innerHTML += `<p><strong>Listelerde olup tanınanlar(doğru):</strong> ${list1Hits+list2Hits}</p>`;
+             resultsAreaEl.innerHTML += `<p><strong>    -- Liste1'in içinden:</strong> ${list1Hits}</p>`;
+             resultsAreaEl.innerHTML += `<p><strong>    -- Liste2'nin içinden:</strong> ${list2Hits}</p>`;
+             resultsAreaEl.innerHTML += `<p><strong>Listelerde olup tanınmayanlar(yanlış):</strong> ${list1Misses+list2Misses}</p>`;
+             resultsAreaEl.innerHTML += `<p><strong>    -- Liste1'in içinden:</strong> ${list1Misses}</p>`;
+             resultsAreaEl.innerHTML += `<p><strong>    -- Liste2'nin içinden:</strong> ${list2Misses}</p>`;
+             resultsAreaEl.innerHTML += `<p><strong>Listelerde olmayıp tanınanlar(yanlış):</strong> ${falseAlarms}</p>`;
+             resultsAreaEl.innerHTML += `<p><strong>Listelerde olmayıp tanınmayanlar(doğru):</strong> ${correctRejections}</p>`;
+        }
+
+         // --- Button Actions (Reset Modified, Download Updated) ---
+         document.getElementById('resetTestBtn').addEventListener('click', () => {
+             // Clear timers
+             clearTimeout(wordTimeout); clearTimeout(intervalTimeout);
+             clearInterval(gameTimerInterval); clearInterval(recallTimerInterval);
+
+             // Reset state variables
+             list1ShownWords = []; list2ShownWords = []; gameData = [];
+             originalGameData = []; currentGameCardIndex = 0; gameScore = 0;
+             gameTotalAnswered = 0; recalledWords = []; recognitionAnswers = {};
+
+             // *** Toggle the list order for the next run ***
+             //listOrderSwapped = !listOrderSwapped;
+             //console.log("Resetting test... List order swapped for next run:", listOrderSwapped);
+
+             // Reset displays
+             wordDisplayEl.textContent = ''; wordDisplayEl2.textContent = '';
+             gameAreaEl.innerHTML = ''; recalledWordsListEl.innerHTML = '<strong>Hatırlanan Kelimeler:</strong>';
+             recognitionListEl.innerHTML = ''; resultsAreaEl.innerHTML = '';
+             // Reset titles/instructions potentially changed by list swap
+             listTitle1El.textContent = "Kelime:";
+             listTitle2El.textContent = "Kelime:";
+             instructionText1El.textContent = "Şimdi sizlere birer saniye aralıklarla 14 kelimelik bir liste sunulacaktır. Kelimeleri dikkatle inceleyin aklınızda tutmaya çalışın, daha sonra bir hatırlama testi verilecektir.";
+             instructionText2El.textContent = "Az önce görmüş olduğunuz kelimeler, asıl listeyi sorunsuz şekilde uygulamak için sadece alıştırma amacıyla verildi. Hatırlama testine dahil değildir. Testte sorumlu olacağınız asıl liste şimdi sunulacaktır. Dikkatle inceleyin ve aklınızda tutmaya çalışın.";
+
+
+             switchScreen('screen1'); // Go back to the start
+         });
+
+        // Assume listOrderSwapped, recalledWords, list1ShownWords, list2ShownWords,
+// gameTotalAnswered, gameScore, list1Words, list2Words, and recognitionAnswers
+// are accessible in this scope.
+
+document.getElementById('downloadResultsBtn').addEventListener('click', () => {
+
+    // --- Generate Text Results ---
+    const resultsText = generateResultsText(); // This function needs to be defined below or elsewhere in scope
+    const textBlob = new Blob([resultsText], { type: 'text/plain;charset=utf-8;' });
+    const textLink = document.createElement('a');
+    textLink.href = URL.createObjectURL(textBlob);
+    textLink.download = 'unutma_deneyi_1_sonuçları.txt';
+    document.body.appendChild(textLink);
+    textLink.click();
+    document.body.removeChild(textLink);
+    URL.revokeObjectURL(textLink.href);
+
+    // --- Generate CSV Results ---
+    const csvContent = generateResultsCsv(); // This function will be defined below
+    const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const csvLink = document.createElement('a');
+    csvLink.href = URL.createObjectURL(csvBlob);
+    csvLink.download = 'unutma_deneyi_1_sonuçları.csv';
+    document.body.appendChild(csvLink);
+
+    // Add a small delay before the second download to help browsers handle it
+    // This might not be strictly necessary depending on the browser and context,
+    // but can improve reliability for multiple downloads from one click.
+     setTimeout(() => {
+         csvLink.click();
+         document.body.removeChild(csvLink);
+         URL.revokeObjectURL(csvLink.href);
+         console.log("Downloading results...");
+     }, 100); // 100ms delay
+
+});
+
+// Helper function for escaping CSV values (important for commas, quotes, newlines)
+const escapeCsvValue = (value) => {
+    if (value === undefined || value === null) {
+        return '';
+    }
+    let stringValue = String(value);
+    // Check if value contains comma, double quote, or newline
+    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        // Escape double quotes by doubling them, then wrap in double quotes
+        return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+    return stringValue;
+};
+
+
+// --- Original function to generate TEXT results (kept for .txt download) ---
+// Modified to include list order information
+function generateResultsText() {
+    const storedDataString = sessionStorage.getItem('confirmationFormData');
+    const receivedData = JSON.parse(storedDataString);
+
+    const name = receivedData["userName"];
+    const telNo = receivedData["telNumber"];
+    const birthDate = receivedData["birthDate"];
+    const question1 = receivedData["question1"];
+    const question1Details = receivedData["question1Details"];
+    const question2 = receivedData["question2"];
+    const sex = receivedData["sex"];
+    
+    let text = "Test Sonuçları\n=============================\n";
+    text += `Ad-Soyad: ${name}\n`;
+    text += `Telefon Numarası: ${telNo}\n\n`;
+    text += `Doğum Tarihi: ${birthDate}\n`;
+    text += `Cinsiyeti: ${sex}\n`;
+    text += `Son iki ayda herhangi bir psikiyatrik veya psikolojik tedavi görmüş mü?: ${question1}\n`;
+    text += `Yukarıdaki soruya cevabınız “Evet” ise bu tedaviler gereği herhangi bir ilaç kullandınız mı yazınız: ${question1Details}\n`;
+    text += `Renk körlüğü ya da görme bozukluğu var mı?: ${question2}\n\n`;
+
+    text += `Liste Sırası: ${listOrderSwapped ? 'Önce Liste 2, sonra Liste 1' : 'Önce Liste 1, sonra Liste 2'}\n\n`;
+
+    // Recall Results
+    let correctRecalls = 0, list1Recalls = 0, list2Recalls = 0, intrusionRecalls = 0;
+
+	
+    const uniqueRecalledWords = [...new Set(recalledWords.map(word => word.toUpperCase()))];
+
+uniqueRecalledWords.forEach(word => {
+    if (list1ShownWords.some(x => x.toUpperCase() == word) || list2ShownWords.some(x => x.toUpperCase() == word)) {
+        correctRecalls++;
+        if (list1ShownWords.some(x => x.toUpperCase() == word)) list1Recalls++;
+        if (list2ShownWords.some(x => x.toUpperCase() == word)) list2Recalls++;
+    } else {
+        intrusionRecalls++;
+    }
+});
+
+    const firstListName = listOrderSwapped ? "Liste 2" : "Liste 1";
+    const secondListName = listOrderSwapped ? "Liste 1" : "Liste 2";
+    text += "Serbest Hatırlama Bölümü:\n";
+    text += ` - Toplam Hatırlanan: ${recalledWords.length}\n`;
+	text += ` - Toplam Hatırlanan (Tekrarsız): ${uniqueRecalledWords.length}\n`;
+    text += ` - Doğru Hatırlanan: ${correctRecalls}\n`;
+    text += `    - İlk Gösterilenden (${firstListName}): ${list1Recalls}\n`;
+    text += `    - İkinci Gösterilenden (${secondListName}): ${list2Recalls}\n`;
+    text += ` - Araya Girme: ${intrusionRecalls}\n`;
+    text += ` - Girilen Kelimeler: ${recalledWords.join(', ') || 'None'}\n`;
+	text += ` - Girilen Kelimeler (Tekrarsız): ${uniqueRecalledWords.join(', ') || 'None'}\n\n`;
+
+    // Game Results
+    const gameAccuracy = gameTotalAnswered > 0 ? ((gameScore / gameTotalAnswered) * 100).toFixed(1) : 0;
+    text += "Oyun İstatistikleri:\n";
+    text += ` - Toplam Cevaplar: ${gameTotalAnswered || 0}\n`;
+    text += ` - Doğru Cevaplar: ${gameScore || 0}\n`;
+    text += ` - Doğruluk: ${gameAccuracy}%\n\n`;
+
+    // Recognition Results Summary & Detail
+    let list1Hits = 0, list1Misses = 0;
+    let list2Hits = 0, list2Misses = 0;
+    let falseAlarms = 0, correctRejections = 0;
+
+    text += "Tanıma Bölümü (Detaylı):\n";
+    text += "Kelime, Hangi Listede Var?, Gördüm Mü Dedi?, Özgüveni(1-4)\n";
+
+    Object.entries(recognitionAnswers || {}).forEach(([word, answer]) => {
+        const lowerWord = word.toUpperCase();
+        const inList1 = (list1Words || []).some(x => x.toUpperCase() === lowerWord);
+        const inList2 = (list2Words || []).some(x => x.toUpperCase() === lowerWord);
+        // Assuming a word is not in BOTH lists
+
+        let listStatus = "Hiçbirinde Yok"; // "Not in either"
+        if (inList1) {
+            listStatus = "Liste1";
+        } else if (inList2) {
+            listStatus = "Liste2";
+        }
+
+        const participantSaidSeen = (answer && answer.seen === "yes"); // Added check for answer object
+
+        text += `${word}, ${listStatus}, ${participantSaidSeen ? "Evet" : "Hayır"}, ${answer.confidence}\n`;
+
+        // Update counters based on origin and response
+        if (inList1) {
+            if (participantSaidSeen) {
+                list1Hits++; // In List 1, said yes -> Hit for List 1
+            } else {
+                list1Misses++; // In List 1, said no -> Miss for List 1
+            }
+        } else if (inList2) {
+            if (participantSaidSeen) {
+                list2Hits++; // In List 2, said yes -> Hit for List 2
+            } else {
+                list2Misses++; // In List 2, said no -> Miss for List 2
+            }
+        } else { // The word was not in either list
+            if (participantSaidSeen) {
+                falseAlarms++; // Not in lists, said yes -> False Alarm
+            } else {
+                correctRejections++; // Not in lists, said no -> Correct Rejection
+            }
+        }
+    });
+
+    text += "\nTanıma Özeti:\n";
+    text += `Listelerde olup tanınanlar(doğru): ${list1Hits + list2Hits}\n`;
+    text += `Listelerde olup tanınmayanlar(yanlış): ${list1Misses + list2Misses}\n\n`;
+
+    text += "Liste 1 Analizi:\n";
+    text += `    - Listede olup tanınanlar(doğru): ${list1Hits}\n`; // In List 1, said yes
+    text += `    - Listede olup tanınmayanlar(yanlış): ${list1Misses}\n`; // In List 1, said no
+
+    text += "\nListe 2 Analizi:\n";
+    text += `    - Listede olup tanınanlar(doğru): ${list2Hits}\n`; // In List 2, said yes
+    text += `    - Listede olup tanınmayanlar(yanlış): ${list2Misses}\n`; // In List 2, said no
+
+    text += "\nListelerde Olmayan Kelimeler:\n";
+    text += `    - Olmayıp tanınanlar(yanlış - Yanlış Alarm): ${falseAlarms}\n`; // Not in lists, said yes
+    text += `    - Olmayıp tanınmayanlar(doğru - Doğru Red): ${correctRejections}\n\n`; // Not in lists, said no
+
+
+    return text;
+}
+
+
+// --- New function to generate CSV results ---
+function generateResultsCsv() {
+     const storedDataString = sessionStorage.getItem('confirmationFormData');
+     const receivedData = JSON.parse(storedDataString);
+
+     const name = receivedData["userName"];
+     const telNo = receivedData["telNumber"];
+     const birthDate = receivedData["birthDate"];
+     const question1 = receivedData["question1"];
+     const question1Details = receivedData["question1Details"];
+     const question2 = receivedData["question2"];
+     const sex = receivedData["sex"];
+     //sessionStorage.removeItem('confirmationFormData'); // Be cautious if you remove this here and need data later
+
+     // Recalculate Recall Results (same logic as in generateResultsText)
+     let correctRecalls = 0, list1Recalls = 0, list2Recalls = 0, intrusionRecalls = 0;
+     const actualRecalledWords = recalledWords || []; // Handle potential undefined
+
+     const uniqueRecalledWords = [...new Set(actualRecalledWords.map(word => word.toUpperCase()))];
+
+uniqueRecalledWords.forEach(word => {
+    if (list1ShownWords.some(x => x.toUpperCase() == word) || list2ShownWords.some(x => x.toUpperCase() == word)) {
+        correctRecalls++;
+        if (list1ShownWords.some(x => x.toUpperCase() == word)) list1Recalls++;
+        if (list2ShownWords.some(x => x.toUpperCase() == word)) list2Recalls++;
+    } else {
+        intrusionRecalls++;
+    }
+});
+     const totalRecalled = actualRecalledWords.length;
+
+     // Recalculate Recognition Results (same logic as in generateResultsText)
+     let list1Hits = 0, list1Misses = 0;
+     let list2Hits = 0, list2Misses = 0;
+     let falseAlarms = 0, correctRejections = 0;
+     let falseAlarmWords = [];
+     let correctRejectionWords = [];
+
+	let wordList = [];
+	let listStatusList = [];
+	let participantSaidSeenList = [];
+	let answerConfidenceList = [];
+
+	Object.entries(recognitionAnswers || {}).forEach(([word, answer]) => {
+        const lowerWord = word.toUpperCase();
+        const inList1 = (list1Words || []).some(x => x.toUpperCase() === lowerWord);
+        const inList2 = (list2Words || []).some(x => x.toUpperCase() === lowerWord);
+        // Assuming a word is not in BOTH lists
+
+        let listStatus = "Hiçbirinde Yok"; // "Not in either"
+        if (inList1) {
+            listStatus = "Liste1";
+        } else if (inList2) {
+            listStatus = "Liste2";
+        }
+        const participantSaidSeen = (answer && answer.seen === "yes"); // Added check for answer object
+		const participantSaidSeenTr = (participantSaidSeen ? "Evet" : "Hayır")
+		wordList.push(word);
+		listStatusList.push(listStatus);
+		participantSaidSeenList.push(participantSaidSeenTr);
+		answerConfidenceList.push(answer.confidence);
+        });
+
+
+     Object.entries(recognitionAnswers || {}).forEach(([word, answer]) => {
+         const lowerWord = word.toUpperCase();
+         const inList1 = (list1Words || []).some(x => x.toUpperCase() === lowerWord);
+         const inList2 = (list2Words || []).some(x => x.toUpperCase() === lowerWord);
+
+         const participantSaidSeen = (answer && answer.seen === "yes"); // Added check for answer object
+
+         if (inList1) {
+             if (participantSaidSeen) {
+                 list1Hits++;
+             } else {
+                 list1Misses++;
+             }
+         } else if (inList2) {
+             if (participantSaidSeen) {
+                 list2Hits++;
+             } else {
+                 list2Misses++;
+             }
+         } else { // Not in either list
+             if (participantSaidSeen) {
+                 falseAlarms++;
+                 falseAlarmWords.push(word); // Collect false alarm words
+             } else {
+                 correctRejections++;
+                 correctRejectionWords.push(word); // Collect correct rejection words (if needed in CSV)
+             }
+         }
+     });
+
+     // Combine Hits/Misses for summary counts
+     const totalListHits = list1Hits + list2Hits;
+     const totalListMisses = list1Misses + list2Misses;
+
+
+     // Game Results (assuming gameScore and gameTotalAnswered are available)
+     const actualGameTotalAnswered = gameTotalAnswered || 0;
+     const actualGameScore = gameScore || 0;
+     const gameAccuracy = actualGameTotalAnswered > 0 ? ((actualGameScore / actualGameTotalAnswered) * 100).toFixed(1) : 0;
+
+
+     // --- Prepare data for CSV ---
+     // Define the headers for the CSV file
+     let csvContent = "Ad-Soyad,Telefon Numarası,Doğum Tarihi,Cinsiyeti,\"Son iki ayda herhangi bir psikiyatrik veya psikolojik tedavi görmüş mü?\",\"Yukarıdaki soruya cevabınız “Evet” ise bu tedaviler gereği herhangi bir ilaç kullandınız mı?\",\"Renk körlüğü ya da görme bozukluğu var mı?\"";
+
+     // Add headers for test results
+     csvContent += ",\"Liste Sırası\",\"Toplam Hatırlanan\",\"Doğru Hatırlanan (Toplam)\",\"Doğru Hatırlanan (Liste 1)\",\"Doğru Hatırlanan (Liste 2)\",\"Araya Girme Sayısı\",\"Girilen Kelimeler\",\"Girilen Kelimeler (Tekrarsız)\"";
+     csvContent += ",\"Oyun Toplam Cevaplar\",\"Oyun Doğru Cevaplar\",\"Oyun Doğruluk (%)\"";
+     csvContent += ",\"Tanıma Listelerde Olup Tanınanlar (Doğru)\",\"Tanıma Listelerde Olup Tanınmayanlar (Yanlış)\",\"Tanıma Liste 1 Tanınanlar\",\"Tanıma Liste 1 Tanınmayanlar\",\"Tanıma Liste 2 Tanınanlar\",\"Tanıma Liste 2 Tanınmayanlar\"";
+     csvContent += ",\"Tanıma Olmayıp Tanınanlar (Yanlış Alarm)\",\"Tanıma Olmayıp Tanınmayanlar (Doğru Red)\",\"Yanlış Alarm Kelimeleri\"";
+	csvContent += ",\"Kelime Listesi\",\"Hangi Listedeydi?\",\"Gördüm Mü Dedi?\",\"Özgüveni\"\n";
+
+
+     // Add user and test results data
+     let rowData = [
+         escapeCsvValue(name),
+         escapeCsvValue(telNo),
+         escapeCsvValue(birthDate),
+         escapeCsvValue(sex),
+         escapeCsvValue(question1),
+         escapeCsvValue(question1Details),
+         escapeCsvValue(question2),
+
+         // Add recall data
+         escapeCsvValue(listOrderSwapped ? 'Önce Liste 2, sonra Liste 1' : 'Önce Liste 1, sonra Liste 2'),
+         escapeCsvValue(totalRecalled),
+         escapeCsvValue(correctRecalls),
+         escapeCsvValue(list1Recalls),
+         escapeCsvValue(list2Recalls),
+         escapeCsvValue(intrusionRecalls),
+         escapeCsvValue(actualRecalledWords.join(', ')), // List recalled words, joined by comma
+	     escapeCsvValue(uniqueRecalledWords.join(', ')),
+
+         // Add game stats
+         escapeCsvValue(actualGameTotalAnswered),
+         escapeCsvValue(actualGameScore),
+         escapeCsvValue(gameAccuracy),
+
+         // Add recognition summary stats
+         escapeCsvValue(totalListHits),
+         escapeCsvValue(totalListMisses),
+         escapeCsvValue(list1Hits),
+         escapeCsvValue(list1Misses),
+         escapeCsvValue(list2Hits),
+         escapeCsvValue(list2Misses),
+         escapeCsvValue(falseAlarms),
+         escapeCsvValue(correctRejections),
+         escapeCsvValue(falseAlarmWords.join(', ')), // List false alarm words
+	     escapeCsvValue(wordList.join(', ')),
+	     escapeCsvValue(listStatusList.join(', ')),
+	     escapeCsvValue(participantSaidSeenList.join(', ')),
+	     escapeCsvValue(answerConfidenceList.join(', ')),
+     ];
+
+     csvContent += rowData.join(',') + '\n';
+
+     return csvContent; // Return the CSV string
+
+}
+
+        // --- Initial Setup ---
+         switchScreen('screen1');
+         console.log("App Initialized. Waiting for user to start. Initial list order swap:", listOrderSwapped);
+
+   </script>
+</body>
+</html>

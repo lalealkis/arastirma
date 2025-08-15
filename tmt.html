@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> İz Sürme Testi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Base Styles */
+        body {
+            font-family: 'Roboto', sans-serif; /* Use Roboto */
+            background-color: #f8f9fa; /* Light gray background */
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            color: #202124; /* Dark gray text color */
+			overflow-x: hidden;
+        }
+
+        /* Container */
+        .container {
+            width: 100%;
+            max-width: 1500px; /* Adjust max-width */
+            margin-right: auto;
+            margin-left: auto;
+            padding: 24px; /* Consistent padding */
+        }
+
+        /* Headings */
+        h1 {
+            font-size: 2.5rem; /* Larger heading */
+            font-weight: 400; /* Lighter weight for title */
+            text-align: center;
+            color: #202124; /* Dark gray */
+            margin-bottom: 32px; /* More space below title */
+        }
+
+        h2 {
+             font-size: 1.5rem; /* Slightly larger section title */
+             font-weight: 500; /* Medium weight */
+             margin-bottom: 16px;
+             color: #202124;
+        }
+
+        h3 {
+            font-size: 1.25rem; /* Sub-section title */
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: #202124;
+        }
+
+         h4 {
+            font-size: 1rem;
+            font-weight: 400;
+            margin-bottom: 8px;
+            color: #5f6368; /* Medium gray */
+         }
+
+        /* Test Container (Card-like appearance) */
+        #test-container {
+            background-color: #fff; /* White background */
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* Subtle shadow */
+            padding: 24px; /* Consistent padding */
+            max-width: 1600px; /* Adjust max-width */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Instructions */
+        #instructions {
+            margin-bottom: 24px;
+        }
+
+        #general-instruction {
+            margin-bottom: 16px;
+            color: #5f6368; /* Medium gray */
+        }
+
+        #training-instruction-part1,
+        #training-instruction-part2,
+        #main-instruction-part1,
+        #main-instruction-part2 {
+            font-weight: 400; /* Regular weight */
+            margin-bottom: 8px;
+        }
+
+        #training-instruction-part1,
+        #training-instruction-part2 {
+             color: #7c3aed; /* Purple accent */
+        }
+
+         #main-instruction-part1,
+         #main-instruction-part2 {
+             color: #1d4ed8; /* Blue accent */
+         }
+
+
+        /* Info Bar (Timer, Accuracy, Progress) */
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap; /* Allow items to wrap on small screens */
+            gap: 16px; /* Space between items */
+        }
+
+        .info-item {
+            font-size: 1rem;
+            font-family: 'Roboto Mono', monospace; /* Use Roboto Mono for numbers */
+            background-color: #e8f0fe; /* Light blue background */
+            color: #1a73e8; /* Google blue text */
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+         #accuracy-info {
+            /* hidden class is handled below */
+        }
+
+
+        /* Test Area (existing styles retained) */
+        #test-area {
+            position: relative;
+            width: 100%;
+            height: 80vh;
+            border: 1px solid #dadce0; /* Lighter border */
+            border-radius: 8px; /* Match container rounding */
+            overflow: hidden;
+            margin: 24px 0;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .node-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        /* Node styles (existing size/shape retained, colors updated) */
+         .node {
+            position: absolute;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500; /* Medium weight */
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s; /* Add box-shadow transition */
+            text-align: center;
+            font-size: 1.3rem;
+            line-height: 0.9;
+            padding: 2px;
+            box-sizing: border-box;
+            border: 1px solid transparent; /* Start with transparent border */
+            box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* Subtle shadow */
+        }
+
+        /* Node Colors (mapping to Google-like states) */
+        .node.neutral {
+            background-color: #fff;
+            color: #202124;
+             border-color: #7c7c7c; /* Light gray border */
+        }
+
+        .node.correct {
+            background-color: #e6f4ea; /* Very light green */
+            color: #137333; /* Google green text */
+            border-color: #34a853; /* Google green border */
+        }
+
+        .node.error {
+            background-color: #fce8e6; /* Very light red */
+            color: #c5221f; /* Google red text */
+            border-color: #ea4335; /* Google red border */
+        }
+
+        .node.startEnd {
+            background-color: #e8f0fe; /* Light blue */
+            color: #1a73e8; /* Google blue text */
+             border-color: #4285f4; /* Google blue border */
+            font-weight: 700; /* Bold */
+        }
+
+        .node.trainingNeutral {
+            background-color: #fff;
+            color: #202124;
+             border-color: #7c7c7c; /* Light gray border */
+        }
+         .node.trainingCorrect {
+            background-color: #f3e8fd; /* Very light purple */
+            color: #7c3aed; /* Purple text */
+            border-color: #7c3aed; /* Purple border */
+         }
+        .node.trainingError {
+             background-color: #fce8e6; /* Very light red */
+             color: #c5221f; /* Google red text */
+             border-color: #ea4335; /* Google red border */
+         }
+
+        /* Hover effect for nodes */
+        .node:hover {
+             box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15); /* More prominent shadow on hover */
+        }
+
+
+        /* Animations (existing styles retained) */
+        .error-shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .highlight-correct {
+            border-color: #fcc934 !important; /* Google yellow for highlight */
+            box-shadow: 0 0 8px #fcc934; /* Yellow glow */
+        }
+
+        /* Utility class (existing styles retained) */
+        .hidden {
+           display: none;
+        }
+
+        /* Buttons */
+        .button {
+            font-family: 'Roboto', sans-serif;
+            font-size: 1rem;
+            font-weight: 500; /* Medium weight */
+            padding: 12px 24px; /* Standard padding */
+            border-radius: 4px; /* Subtle rounding */
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+            border: none;
+            text-transform: none; /* Prevent uppercase */
+             box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* Subtle shadow */
+        }
+
+        .button:hover {
+             box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15); /* More prominent shadow */
+        }
+
+
+        #start-btn,
+        #restart-btn,
+        #download-btn {
+            background-color: #1a73e8; /* Google blue */
+            color: white;
+        }
+
+        #start-btn:hover,
+         #restart-btn:hover,
+         #download-btn:hover {
+            background-color: #1565c0; /* Darker blue on hover */
+        }
+
+        #start-part2-btn {
+            background-color: #34a853; /* Google green */
+            color: white;
+             margin-left: 16px; /* Space between buttons */
+        }
+
+        #start-part2-btn:hover {
+            background-color: #2e7d32; /* Darker green */
+        }
+
+        #next-training-btn {
+            background-color: #7c3aed; /* Purple */
+            color: white;
+             margin-left: 16px; /* Space between buttons */
+        }
+
+        #next-training-btn:hover {
+            background-color: #6d28d9; /* Darker purple */
+        }
+
+        #reset-btn {
+            background-color: #ea4335; /* Google red */
+            color: white;
+            margin-left: 16px; /* Space between buttons */
+        }
+
+        #reset-btn:hover {
+            background-color: #d32f2f; /* Darker red */
+        }
+
+        /* Button group styling */
+        .button-group {
+             display: flex;
+             justify-content: center;
+             margin-top: 24px;
+             flex-wrap: wrap; /* Allow buttons to wrap */
+             gap: 16px; /* Space between buttons when wrapped */
+        }
+
+
+        /* Results Screen (Card-like appearance) */
+        #results-screen {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+            padding: 24px;
+            max-width: 800px; /* Adjust max-width */
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 32px; /* More space above results */
+        }
+
+        #results-screen h2 {
+            font-size: 2rem; /* Larger heading */
+            font-weight: 400;
+            text-align: center;
+            color: #137333; /* Google green */
+            margin-bottom: 24px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 24px; /* More gap */
+            margin-bottom: 24px; /* Space before general results */
+        }
+
+        @media (min-width: 768px) { /* md breakpoint */
+            .results-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .result-box {
+            background-color: #f8f9fa; /* Light gray background */
+            padding: 16px;
+            border-radius: 8px;
+             border: 1px solid #dadce0; /* Light border */
+        }
+
+        .result-item {
+            font-size: 1rem;
+            line-height: 1.5; /* Standard line height */
+            margin-bottom: 8px;
+            color: #5f6368; /* Medium gray */
+        }
+
+        .result-item.large {
+             font-size: 1.125rem;
+             font-weight: 500; /* Medium weight for main results */
+             color: #202124; /* Dark gray for main results */
+        }
+
+        .result-item span {
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500; /* Medium weight */
+            color: #202124; /* Dark gray */
+        }
+
+         .result-box .text-purple-800 {
+             color: #5b21b6; /* Retain purple for training results */
+         }
+         .result-box .text-purple-800 span {
+             color: #5b21b6; /* Retain purple for training results spans */
+         }
+
+
+        /* Download Button Container */
+        .download-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
+        /* Return Home Button (existing styles kept as requested) */
+         .return-home-button {
+             position: fixed;
+             top: 1rem;
+             left: 1rem;
+             width: 48px;
+             height: 48px;
+             border-radius: 50%;
+             background-color: #2563eb;
+             color: white;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+             z-index: 50;
+             text-decoration: none;
+             font-size: 1.5rem;
+             transition: background-color 0.2s ease-in-out;
+         }
+
+         /* Hover effect for the button (existing styles kept) */
+         .return-home-button:hover {
+             background-color: #1d4ed8;
+         }
+
+    </style>
+</head>
+<body>
+    <a href="/experiments-homepage/home.html" class="return-home-button" aria-label="Anasayfaya Dön">
+        ↩
+    </a>
+    <div class="container">
+        <h1>İz Sürme Testi</h1>
+
+        <div id="test-container">
+            <div id="instructions" class="instructions">
+                <h2>Talimatlar:</h2>
+                <p id="general-instruction">Dairelere sırasıyla olabildiğince hızlı şekilde tıklayın.</p>
+                <p id="training-instruction-part1" class="hidden">Eğitim - 1. Bölüm: Aşağıdaki 5 daireye sırasıyla tıklayın: 1 → 2 → 3 → 4 → 5</p>
+                <p id="training-instruction-part2" class="hidden">Eğitim - 2. Bölüm: Aşağıdaki 5 daireye sırasıyla tıklayın: 1 → A → 2 → B → 3</p>
+                <p id="main-instruction-part1" class="hidden">1. Bölüm: Bu sırayla tıklayın: 1 → 2 → 3 → 4 → ... → 24 → 25</p>
+                <p id="main-instruction-part2" class="hidden">2. Bölüm: Bu sırayla tıklayın: 1 → A → 2 → B → 3 → C → ... → L → 13</p>
+            </div>
+
+            <div class="info-bar">
+                <div id="timer" class="info-item">
+                    Süre: <span id="time-display">00:00:000</span>
+                </div>
+                <div id="accuracy-info" class="info-item hidden">
+                    Doğruluk: <span id="accuracy-display">--</span>%
+                </div>
+                <div id="progress" class="info-item">
+                    İlerleme: <span id="progress-display">0</span>/<span id="total-nodes">0</span>
+                </div>
+            </div>
+
+            <div id="test-area">
+                <canvas id="connection-canvas"></canvas>
+                <div id="node-container" class="node-container"></div>
+            </div>
+
+            <div class="button-group">
+                <button id="start-btn" class="button">
+                    Testi Başlat
+                </button>
+                <button id="start-part2-btn" class="button hidden">
+                    2. Bölümü Başlat
+                </button>
+                <button id="next-training-btn" class="button hidden">
+                    Ana Teste Geç
+                </button>
+                <button id="reset-btn" class="button hidden">
+                    Sıfırla
+                </button>
+            </div>
+        </div>
+
+        <div id="results-screen" class="hidden">
+            <h2>Test Bitti!</h2>
+            <h4 id="namesurname"></h4>
+            <div class="results-grid">
+                <div class="result-box">
+                    <h3>1. Bölüm Sonuçları</h3>
+                    <p class="result-item text-purple-800">Eğitim Süresi: <span id="training-part1-time">--:--:---</span></p>
+                    <p class="result-item text-purple-800">Eğitim Doğruluk: <span id="training-part1-accuracy">--</span>% (<span id="training-part1-correct">0</span>/<span id="training-part1-total">0</span>)</p>
+                    <p class="result-item large">Ana Test Süresi: <span id="part1-time">--:--:---</span></p>
+                    <p class="result-item large">Ana Test Doğruluk: <span id="part1-accuracy">--</span>% (<span id="part1-correct">0</span>/<span id="part1-total">0</span>)</p>
+                </div>
+                <div class="result-box">
+                    <h3>2. Bölüm Sonuçları</h3>
+                    <p class="result-item text-purple-800">Eğitim Süresi: <span id="training-part2-time">--:--:---</span></p>
+                    <p class="result-item text-purple-800">Eğitim Doğruluk: <span id="training-part2-accuracy">--</span>% (<span id="training-part2-correct">0</span>/<span id="training-part2-total">0</span>)</p>
+                    <p class="result-item large">Ana Test Süresi: <span id="part2-time">--:--:---</span></p>
+                    <p class="result-item large">Ana Test Doğruluk: <span id="part2-accuracy">--</span>% (<span id="part2-correct">0</span>/<span id="part2-total">0</span>)</p>
+                </div>
+            </div>
+             <div class="button-group">
+                <button id="restart-btn" class="button">
+                    Tekrar Uygula
+                </button>
+            </div>
+            <br> <div class="result-box">
+                <h3>Genel Sonuçlar</h3>
+                <p class="result-item">Toplam Süre: <span id="total-time">--:--:---</span></p>
+                <p class="result-item">Ortalama Doğruluk: <span id="average-accuracy">--</span>%</p>
+                <p class="result-item">Eğitim Süre Farkı: <span id="training-time-difference">--:--:---</span></p>
+                <p class="result-item">Test Süre Farkı: <span id="test-time-difference">--:--:---</span></p>
+                <p class="result-item">Eğitim Doğruluk Farkı: <span id="training-accuracy-difference">--</span>%</p>
+                <p class="result-item">Test Doğruluk Farkı: <span id="test-accuracy-difference">--</span>%</p>
+            </div>
+
+            <div class="button-group"> <button id="download-btn" class="button">
+                    Sonuçları İndir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const config = {
+            nodesPerPart: 25, // Fixed number of nodes for the main test
+            trainingNodesCount: 8, // Number of nodes for training
+            nodeSize: 65,      // Increased size slightly based on image appearance
+            margin: 15,        // Increased margin slightly
+            colors: {
+                neutral: 'neutral', // Mapped to CSS class 'node.neutral'
+                correct: 'correct', // Mapped to CSS class 'node.correct'
+                error: 'error',   // Mapped to CSS class 'node.error'
+                startEnd: 'startEnd', // Mapped to CSS class 'node.startEnd'
+                trainingNeutral: 'trainingNeutral', // Mapped to CSS class 'node.trainingNeutral'
+                trainingCorrect: 'trainingCorrect', // Mapped to CSS class 'node.trainingCorrect'
+                trainingError: 'trainingError' // Mapped to CSS class 'node.trainingError'
+            },
+            startLabel: '1\n(başla)',
+            //endLabel: '(bitiş)'
+        };
+
+        // --- Existing JavaScript code goes here ---
+        // (Assuming the rest of the JavaScript functionality remains unchanged)
+
+
+        // --- Existing JavaScript code goes here ---
+        // (The provided HTML only contained config and the start of the script)
+        // (Assuming the rest of the JavaScript functionality remains unchanged)
+
+        // Turkish alphabet sequence (only need up to L for 13 letters)
+        const turkishAlphabet = ['A', 'B', 'C', 'Ç', 'D', 'E', 'F', 'G', 'Ğ', 'H', 'I', 'İ', 'J', 'K', 'L']; // L is the 12th letter needed (0-indexed)
+
+        // Fixed positions for Main Part 1 nodes (estimated percentages for the center of the node)
+        // Based on image.png
+		//15, 7.75
+        const mainPart1NodePositions = {
+            1: { x: 62, y: 72.2 },
+            2: { x: 41, y: 83.8 },
+            3: { x: 72, y: 83.8 },
+            4: { x: 73.3, y: 38 },
+            5: { x: 46, y: 49 },
+            6: { x: 59, y: 59.3 },
+            7: { x: 41.3, y: 65.8 },
+            8: { x: 18.6, y: 82.5 },
+            9: { x: 24, y: 91.6 },
+            10: { x: 34.6, y: 82.5 },
+            11: { x: 46, y: 94.2 },
+            12: { x: 7.6, y: 95.4 },
+            13: { x: 14, y: 52.9 },
+            14: { x: 6, y: 61.9 },
+            15: { x: 6, y: 12.2 },
+            16: { x: 15.6, y: 29 },
+            17: { x: 33.3, y: 6.4 },
+            18: { x: 39.6, y: 29 },
+            19: { x: 63.6, y: 21.9 },
+            20: { x: 46, y: 20 },
+            21: { x: 52.3, y: 5.1 },
+            22: { x: 91, y: 15.4 },
+            23: { x: 93.3, y: 90.3 },
+            24: { x: 83, y: 51.6 },
+            25: { x: 79.3, y: 94.1 }, // Adjusted 25 slightly
+        };
+
+        // Fixed positions for Training Part 1 nodes (placeholder)
+		//13, 7.7
+        const trainingPart1NodePositions = {
+            1: { x: 54.6, y: 61.6 },
+            2: { x: 63.8, y: 24.6 },
+            3: { x: 85.3, y: 48 },
+            4: { x: 72.3, y: 57.7 },
+            5: { x: 78.8, y: 88.9 },
+            6: { x: 21.5, y: 80.5 },
+            7: { x: 10.3, y: 42.8 },
+            8: { x: 39.2, y: 41.5 },
+        };
+
+        // Fixed positions for Training Part 2 nodes (placeholder)
+		//10.6, 6.8
+        const trainingPart2NodePositions = {
+            1: { x: 54.7, y: 61.76 },
+            'A': { x: 63.2, y: 25.2 },
+            2: { x: 85.8, y: 47.8 },
+            'B': { x: 72.6, y: 57.3 },
+            3: { x: 79.2, y: 88.2 },
+            'C': { x: 21.6, y: 80.1 },
+            4: { x: 10.3, y: 44.1 },
+            'Ç': { x: 39.1, y: 38.2 },
+        };
+
+        // Fixed positions for Main Part 2 nodes (estimated percentages for the center of the node)
+        // Based on Trail Making Test Part B image
+		//15, 7.5
+        const mainPart2NodePositions = {
+            1:   { x: 50.6, y: 42.6 },
+            'A': { x: 70.3, y: 74.6 },
+            2:   { x: 36.6, y: 70.6 },
+            'B': { x: 46.2, y: 18.6 },
+            3:   { x: 57.3, y: 30.6 },
+            'C': { x: 70.6, y: 52 },
+            4:   { x: 70.6, y: 14.1 },
+            'Ç': { x: 85.2, y: 16 },//d
+            5:   { x: 85, y: 58.6 },
+            'D': { x: 78.6, y: 82.6 },//e
+            6:   { x: 54.3, y: 80 },
+            'E': { x: 30, y: 89.3 },//f
+            7:   { x: 23.6, y: 44.6 },
+            'F': { x: 15.3, y: 57.3 },//g
+            8:   { x: 12, y: 5.8 },
+            'G': { x: 26.6, y: 26.6 },//h
+            9:   { x: 26.6, y: 12.6 },
+            'Ğ': { x: 62.6, y: 4.8 },//I
+            10:  { x: 93.3, y: 5.3 },
+            'H': { x: 88.3, y: 68 },//j
+            11:  { x: 93.3, y: 92 },
+            'I': { x: 7.3, y: 94.6 },//k
+            12:  { x: 5.6, y: 48.8 },
+            'İ': { x: 17.3, y: 74.6 },//L
+             // Estimate position for 13, near L as it's the next in sequence
+        };
+
+
+        // State variables
+        let state = {
+            nodes: [], // Stores { element, value, x, y } for current session (training or main)
+            currentPart: 1, // 1 or 2
+            isTraining: false,
+            currentStep: 0, // Current step in the current sequence (training or main)
+            correctSequence: [], // The sequence expected to be clicked for the current session
+            tappedNodes: [], // Nodes tapped correctly { element, value, x, y } in the current session
+            startTime: null,
+            timerInterval: null,
+            part1Stats: { timeMs: 0, correctClicks: 0, totalClicks: 0 }, // Store time in ms
+            part2Stats: { timeMs: 0, correctClicks: 0, totalClicks: 0 }, // Store time in ms
+            trainingPart1Stats: { timeMs: 0, correctClicks: 0, totalClicks: 0 }, // Store time in ms
+            trainingPart2Stats: { timeMs: 0, correctClicks: 0, totalClicks: 0 }, // Store time in ms
+        };
+
+        // DOM elements
+        const testContainer = document.getElementById('test-container');
+        const resultsScreen = document.getElementById('results-screen');
+		const nameSurnameH4 = document.getElementById("namesurname");
+        const testArea = document.getElementById('test-area');
+        const nodeContainer = document.getElementById('node-container');
+        const connectionCanvas = document.getElementById('connection-canvas');
+        const ctx = connectionCanvas.getContext('2d');
+        const startBtn = document.getElementById('start-btn');
+        const startPart2Btn = document.getElementById('start-part2-btn'); // Changed from next-part-btn
+        const nextTrainingBtn = document.getElementById('next-training-btn'); // New button for training to main
+        const resetBtn = document.getElementById('reset-btn'); // This becomes active mid-test
+        const restartBtn = document.getElementById('restart-btn'); // Button on results screen
+        const timeDisplay = document.getElementById('time-display');
+        const progressDisplay = document.getElementById('progress-display');
+        const totalNodesDisplay = document.getElementById('total-nodes');
+        const generalInstruction = document.getElementById('general-instruction');
+        const trainingInstructionPart1 = document.getElementById('training-instruction-part1');
+        const trainingInstructionPart2 = document.getElementById('training-instruction-part2');
+        const mainInstructionPart1 = document.getElementById('main-instruction-part1');
+        const mainInstructionPart2 = document.getElementById('main-instruction-part2');
+        const accuracyInfo = document.getElementById('accuracy-info');
+        const accuracyDisplay = document.getElementById('accuracy-display');
+
+        // Results Screen Elements
+        const trainingPart1TimeDisp = document.getElementById('training-part1-time');
+        const trainingPart1AccuracyDisp = document.getElementById('training-part1-accuracy');
+        const trainingPart1CorrectDisp = document.getElementById('training-part1-correct');
+        const trainingPart1TotalDisp = document.getElementById('training-part1-total');
+        const part1TimeDisp = document.getElementById('part1-time');
+        const part1AccuracyDisp = document.getElementById('part1-accuracy');
+        const part1CorrectDisp = document.getElementById('part1-correct');
+        const part1TotalDisp = document.getElementById('part1-total');
+
+        const trainingPart2TimeDisp = document.getElementById('training-part2-time');
+        const trainingPart2AccuracyDisp = document.getElementById('training-part2-accuracy');
+        const trainingPart2CorrectDisp = document.getElementById('training-part2-correct');
+        const trainingPart2TotalDisp = document.getElementById('training-part2-total');
+        const part2TimeDisp = document.getElementById('part2-time');
+        const part2AccuracyDisp = document.getElementById('part2-accuracy');
+        const part2CorrectDisp = document.getElementById('part2-correct');
+        const part2TotalDisp = document.getElementById('part2-total');
+
+
+        // Initialize the application
+        function init() {
+            resizeCanvas();
+            setupEventListeners();
+            resetTest(); // Start in a clean, initial state
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            startBtn.addEventListener('click', () => startTraining(1)); // Start training for Part 1
+            startPart2Btn.addEventListener('click', () => startTraining(2)); // Start training for Part 2
+            nextTrainingBtn.addEventListener('click', startMainTest); // Transition from training to main
+            resetBtn.addEventListener('click', resetTest); // Mid-test reset
+            restartBtn.addEventListener('click', resetTest); // Post-test reset
+            window.addEventListener('resize', handleResize); // Use a dedicated resize handler
+        }
+
+        // Handle window resize - redraw canvas and potentially reposition nodes if not fixed
+        function handleResize() {
+            resizeCanvas();
+            // Since all nodes are now fixed with percentages, they will naturally reposition.
+            // We just need to ensure connections are redrawn.
+        }
+
+        // Resize canvas to match test area
+        function resizeCanvas() {
+            connectionCanvas.width = testArea.clientWidth;
+            connectionCanvas.height = testArea.clientHeight;
+            // Update node positions and redraw connections on resize
+            updateNodePositions(); // Re-calculate pixel positions based on current testArea size
+            if (state.tappedNodes.length > 0) {
+                drawConnections(); // Redraw connections on resize
+            }
+        }
+
+         // Update the pixel positions (x, y in state.nodes) based on current container size and fixed percentages
+         function updateNodePositions() {
+             const containerWidth = testArea.clientWidth;
+             const containerHeight = testArea.clientHeight;
+             const nodeRadius = config.nodeSize / 2;
+
+             let fixedPositionsMap;
+             if (state.isTraining) {
+                 fixedPositionsMap = state.currentPart === 1 ? trainingPart1NodePositions : trainingPart2NodePositions;
+             } else {
+                 fixedPositionsMap = state.currentPart === 1 ? mainPart1NodePositions : mainPart2NodePositions;
+             }
+
+
+             state.nodes.forEach(nodeData => {
+                 const position = fixedPositionsMap[nodeData.value];
+                  if (position) { // Ensure position exists
+                      const x = (position.x / 100) * containerWidth - nodeRadius;
+                      const y = (position.y / 100) * containerHeight - nodeRadius;
+
+                      nodeData.element.style.left = `${x}px`;
+                      nodeData.element.style.top = `${y}px`;
+                      nodeData.x = x + nodeRadius; // Update center x
+                      nodeData.y = y + nodeRadius; // Update center y
+                  } else {
+                       console.warn(`Position not found for node value ${nodeData.value} during resize.`);
+                  }
+             });
+         }
+
+
+        // Reset UI elements and state to initial state
+         function resetUI() {
+            timeDisplay.textContent = '00:00:000'; // Reset timer display
+            progressDisplay.textContent = '0';
+            totalNodesDisplay.textContent = config.nodesPerPart; // Default to main test count initially
+
+            // Hide all instructions
+            generalInstruction.classList.remove('hidden');
+            trainingInstructionPart1.classList.add('hidden');
+            trainingInstructionPart2.classList.add('hidden');
+            mainInstructionPart1.classList.add('hidden');
+            mainInstructionPart2.classList.add('hidden');
+
+            // Hide all buttons except start
+            startBtn.classList.remove('hidden');
+            startPart2Btn.classList.add('hidden');
+            nextTrainingBtn.classList.add('hidden');
+            resetBtn.classList.add('hidden');
+            restartBtn.classList.add('hidden');
+
+            accuracyInfo.classList.add('hidden');
+            accuracyDisplay.textContent = '--';
+            testContainer.classList.remove('hidden');
+            resultsScreen.classList.add('hidden');
+            nodeContainer.innerHTML = ''; // Clear nodes
+            state.nodes = []; // Ensure state.nodes is cleared
+            clearConnections();
+         }
+
+        // Start a training session
+        function startTraining(part) {
+            resetUI(); // Ensure clean start
+            state.isTraining = true;
+            state.currentPart = part;
+            state.currentStep = 0;
+            state.tappedNodes = [];
+
+            let trainingSequence;
+            let trainingPositionsMap;
+
+            if (part === 1) {
+                trainingSequence = [1, 2, 3, 4, 5, 6, 7, 8];
+                trainingPositionsMap = trainingPart1NodePositions;
+                trainingInstructionPart1.classList.remove('hidden');
+                state.trainingPart1Stats = { timeMs: 0, correctClicks: 0, totalClicks: 0 }; // Reset stats for this training session
+            } else { // part === 2
+                trainingSequence = [1, 'A', 2, 'B', 3, 'C', 4, 'Ç'];
+                trainingPositionsMap = trainingPart2NodePositions;
+                trainingInstructionPart2.classList.remove('hidden');
+                state.trainingPart2Stats = { timeMs: 0, correctClicks: 0, totalClicks: 0 }; // Reset stats for this training session
+            }
+
+            state.correctSequence = trainingSequence; // Set correct sequence for the current session
+
+            // Generate training nodes using fixed positions
+            generateNodes(state.correctSequence, trainingPositionsMap);
+
+            // Update UI for training
+            generalInstruction.classList.add('hidden'); // Hide general instruction
+            updateProgress();
+            startBtn.classList.add('hidden');
+            resetBtn.classList.remove('hidden'); // Show mid-test reset
+            accuracyInfo.classList.remove('hidden'); // Show accuracy display
+
+            // Start timer for training
+            startTimer(); // Use the same timer logic
+        }
+
+        // Transition from training to the main test
+        function startMainTest() {
+             stopTimer(); // Stop training timer
+
+            // Store training stats (time in milliseconds)
+             const finalTrainingTimeMs = Date.now() - state.startTime;
+             if (state.currentPart === 1) {
+                 state.trainingPart1Stats.timeMs = finalTrainingTimeMs;
+                 const acc = state.trainingPart1Stats.totalClicks > 0 ? Math.round((state.trainingPart1Stats.correctClicks / state.trainingPart1Stats.totalClicks) * 100) : 0;
+                 state.trainingPart1Stats.accuracy = acc;
+             } else { // Part 2
+                 state.trainingPart2Stats.timeMs = finalTrainingTimeMs;
+                  const acc = state.trainingPart2Stats.totalClicks > 0 ? Math.round((state.trainingPart2Stats.correctClicks / state.trainingPart2Stats.totalClicks) * 100) : 0;
+                 state.trainingPart2Stats.accuracy = acc;
+             }
+
+
+             // Clear training nodes and connections
+             nodeContainer.innerHTML = '';
+             state.nodes = []; // Clear node data
+             clearConnections();
+
+             state.isTraining = false; // Switch to main test mode
+             state.currentStep = 0; // Reset step for main test
+             state.tappedNodes = []; // Reset tapped nodes for main test
+
+             let mainSequence;
+             let mainPositionsMap;
+
+            // Set up correct sequence and fixed positions map for the main part
+            if (state.currentPart === 1) {
+                mainSequence = Array.from({length: config.nodesPerPart}, (_, i) => i + 1);
+                mainPositionsMap = mainPart1NodePositions; // Use the existing Part 1 fixed map
+                mainInstructionPart1.classList.remove('hidden'); // Show main Part 1 instruction
+                trainingInstructionPart1.classList.add('hidden'); // Hide training instruction
+                state.part1Stats = { timeMs: 0, correctClicks: 0, totalClicks: 0 }; // Reset main stats for this part
+            } else { // Part 2
+                 mainSequence = [];
+                 const numCount = 12;
+                 const letterCount = 12;
+                 for (let i = 0; i < config.nodesPerPart; i++) {
+                       // Sequence is 1, A, 2, B, ...
+                      if (i % 2 === 0) { // Even index -> Number
+                           const num = Math.floor(i / 2) + 1;
+                           if (num <= numCount) {
+                              mainSequence.push(num);
+                           }
+                       } else { // Odd index -> Letter
+                           const letterIndex = Math.floor(i / 2);
+                           if (letterIndex < letterCount) {
+                              mainSequence.push(turkishAlphabet[letterIndex]);
+                           }
+                       }
+                  }
+                   // Ensure sequence length is exactly nodesPerPart (it should be 13+12=25)
+                  mainSequence = mainSequence.slice(0, config.nodesPerPart);
+                 mainPositionsMap = mainPart2NodePositions; // Use the new Part 2 fixed map
+                 mainInstructionPart2.classList.remove('hidden');
+                 trainingInstructionPart2.classList.add('hidden'); // Hide training instruction
+                 state.part2Stats = { timeMs: 0, correctClicks: 0, totalClicks: 0 }; // Reset main stats for this part
+            }
+
+            state.correctSequence = mainSequence; // Set correct sequence for the current session
+
+            // Generate main test nodes using fixed positions
+            generateNodes(state.correctSequence, mainPositionsMap);
+
+             // Update UI for main test
+             updateProgress();
+             nextTrainingBtn.classList.add('hidden'); // Hide transition button
+             resetBtn.classList.remove('hidden'); // Keep reset active
+             updateAccuracyDisplay(); // Reset accuracy display for the new part
+
+             // Start timer for the main test
+             startTimer();
+        }
+
+
+        // Reset the entire test back to the beginning
+        function resetTest() {
+            stopTimer();
+            resetUI();
+            // Reset all state completely
+            state = {
+                 nodes: [],
+                 currentPart: 1,
+                 isTraining: false,
+                 currentStep: 0,
+                 correctSequence: [],
+                 tappedNodes: [],
+                 startTime: null,
+                 timerInterval: null,
+                 part1Stats: { timeMs: 0, correctClicks: 0, totalClicks: 0 },
+                 part2Stats: { timeMs: 0, correctClicks: 0, totalClicks: 0 },
+                 trainingPart1Stats: { timeMs: 0, correctClicks: 0, totalClicks: 0 },
+                 trainingPart2Stats: { timeMs: 0, correctClicks: 0, totalClicks: 0 },
+             };
+             // Ensure start button is visible for a new test run
+            startBtn.classList.remove('hidden');
+        }
+
+        // Generate physical node divs and assign initial values/positions
+        // Always uses fixed positions based on the provided map and sequence.
+        function generateNodes(sequence, fixedPositionsMap) {
+            nodeContainer.innerHTML = ''; // Clear previous nodes
+            state.nodes = []; // Clear node data
+
+            const containerWidth = testArea.clientWidth;
+            const containerHeight = testArea.clientHeight;
+            const nodeDiameter = config.nodeSize;
+            const nodeRadius = nodeDiameter / 2;
+
+            // Iterate through the provided sequence
+            sequence.forEach(value => {
+                const position = fixedPositionsMap[value];
+                if (!position) {
+                    console.error(`Fixed position not found for value: ${value} in the provided map.`);
+                    return; // Skip if position is missing
+                }
+
+                // Calculate top-left position so the center is at the desired percentage
+                const x = (position.x / 100) * containerWidth - nodeRadius;
+                const y = (position.y / 100) * containerHeight - nodeRadius;
+
+                const nodeElement = document.createElement('div');
+                // Style will be set by updateNodeLabelsAndValues based on state
+                nodeElement.className = `node ${state.isTraining ? config.colors.trainingNeutral : config.colors.neutral}`; // Default style initially
+                nodeElement.style.left = `${x}px`;
+                nodeElement.style.top = `${y}px`;
+                nodeElement.dataset.value = value; // Store the value
+                nodeElement.textContent = value; // Initial label (will be updated)
+
+                nodeElement.addEventListener('click', handleNodeClick);
+
+                nodeContainer.appendChild(nodeElement);
+                state.nodes.push({
+                    element: nodeElement,
+                    value: value,
+                    x: x + nodeRadius, // Center X
+                    y: y + nodeRadius  // Center Y
+                });
+            });
+
+            // After generating all nodes, update their final labels and styles
+            updateNodeLabelsAndValues(); // Call after all nodes for the sequence are created and added to state.nodes
+
+            totalNodesDisplay.textContent = state.nodes.length; // Update total count display
+        }
+
+         // Update node labels and data-values based on the current part and session (training/main)
+         // This function is called after nodes are generated and have their base values/positions
+        function updateNodeLabelsAndValues() {
+            const sequence = state.correctSequence;
+            const lastValue = sequence[sequence.length - 1];
+
+            state.nodes.forEach(nodeData => {
+                const value = nodeData.value; // Use the value already assigned during generation
+                let label = value; // Default label is the value itself
+
+                 // Apply Start/End labels and specific styles
+                 let nodeClass = `node ${state.isTraining ? config.colors.trainingNeutral : config.colors.neutral}`;
+
+                 if (value == sequence[0]) { // Check against the first element of the sequence
+                     label = `${value}\n(başla)`;
+                     nodeClass = `node ${config.colors.startEnd}`; // Use standard start/end style even in training
+                 } else if (value == lastValue) { // Check against the last element
+                      label = `${value}\n(bitir)`;
+                     nodeClass = `node ${config.colors.startEnd}`; // Use standard start/end style even in training
+                 } else {
+                     // For non-start/end nodes, apply session-specific neutral style
+                     nodeClass = `node ${state.isTraining ? config.colors.trainingNeutral : config.colors.neutral}`;
+                 }
+
+
+                nodeData.element.className = nodeClass;
+                nodeData.element.textContent = label;
+                 // data-value is already set in generateNodes
+                // nodeData.value is already set in generateNodes
+            });
+        }
+
+
+        // Check if a new node overlaps with existing nodes (No longer needed as positions are fixed)
+        // function checkOverlap(newNodeElement, existingNodeElements, nodeDiameter, margin) { ... }
+
+
+        // Handle node click
+        function handleNodeClick(event) {
+            if (state.startTime === null) return; // Don't process clicks if timer not running
+
+            const clickedNodeElement = event.target;
+            // Find the corresponding node data in our state array
+            const clickedNodeData = state.nodes.find(n => n.element === clickedNodeElement);
+
+            if (!clickedNodeData || clickedNodeData.value === null) {
+                 console.warn("Clicked on an unassigned node.");
+                 return; // Ignore clicks on nodes without assigned values
+            }
+
+            const clickedValue = clickedNodeData.value; // Use the stored value (1, A, 2, B...)
+            const expectedValue = state.correctSequence[state.currentStep];
+
+             // Increment total clicks for the current session's stats
+             if (state.isTraining) {
+                 if (state.currentPart === 1) state.trainingPart1Stats.totalClicks++;
+                 else state.trainingPart2Stats.totalClicks++;
+             } else {
+                  if (state.currentPart === 1) state.part1Stats.totalClicks++;
+                  else state.part2Stats.totalClicks++;
+             }
+             updateAccuracyDisplay();
+
+
+            // Check if clicked node is correct
+            if (clickedValue == expectedValue) { // Loose comparison (number vs string)
+                // Correct tap
+                 handleCorrectTap(clickedNodeData);
+            } else {
+                // Incorrect tap
+                handleIncorrectTap(clickedNodeElement);
+            }
+        }
+
+         // Update Accuracy Display during test/training
+        function updateAccuracyDisplay() {
+             let correct, total;
+             if (state.isTraining) {
+                 if (state.currentPart === 1) {
+                     correct = state.trainingPart1Stats.correctClicks;
+                     total = state.trainingPart1Stats.totalClicks;
+                 } else {
+                     correct = state.trainingPart2Stats.correctClicks;
+                     total = state.trainingPart2Stats.totalClicks;
+                 }
+             } else { // Main test
+                 if (state.currentPart === 1) {
+                     correct = state.part1Stats.correctClicks;
+                     total = state.part1Stats.totalClicks;
+                 } else {
+                     correct = state.part2Stats.correctClicks;
+                     total = state.part2Stats.totalClicks;
+                 }
+             }
+
+
+             const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+             accuracyDisplay.textContent = accuracy;
+             accuracyInfo.classList.remove('hidden'); // Make sure it's visible
+        }
+
+
+        // Handle correct node tap
+        function handleCorrectTap(nodeData) {
+             // Increment correct clicks for the current session's stats
+            if (state.isTraining) {
+                if (state.currentPart === 1) state.trainingPart1Stats.correctClicks++;
+                else state.trainingPart2Stats.correctClicks++;
+            } else { // Main test
+                 if (state.currentPart === 1) state.part1Stats.correctClicks++;
+                 else state.part2Stats.correctClicks++;
+            }
+            updateAccuracyDisplay(); // Update live accuracy
+
+            // Add to tapped nodes (for drawing lines)
+            state.tappedNodes.push(nodeData);
+
+            // Update node appearance (but keep start/end distinct if needed)
+            const isStartNode = nodeData.value == state.correctSequence[0];
+            const isEndNode = nodeData.value == state.correctSequence[state.correctSequence.length - 1];
+
+            // Apply correct style, but prioritize start/end styling
+            if (!isStartNode && !isEndNode) {
+                 nodeData.element.className = `node ${state.isTraining ? config.colors.trainingCorrect : config.colors.correct}`;
+            } else if (isEndNode && state.currentStep === state.correctSequence.length - 1) {
+                 // Apply correct style to the end node when it's the final correct click
+                 nodeData.element.className = `node ${state.isTraining ? config.colors.trainingCorrect : config.colors.correct}`;
+            }
+
+
+            // Draw connection to previous node
+            if (state.tappedNodes.length > 1) {
+                drawConnections();
+            }
+
+            // Advance to next step
+            state.currentStep++;
+
+            // Update progress
+            updateProgress();
+
+            // Check if the current session (training or main) is complete
+            if (state.currentStep >= state.correctSequence.length) {
+                 if (state.isTraining) {
+                     handleTrainingComplete();
+                 } else { // Main test part complete
+                     handleMainTestPartComplete();
+                 }
+            }
+        }
+
+        // Handle incorrect node tap
+        function handleIncorrectTap(nodeElement) {
+             // Visual feedback for error
+             const originalClasses = nodeElement.className; // Store original classes
+             const isStartOrEnd = originalClasses.includes(config.colors.startEnd.split(' ')[0]); // Check base color class
+
+             nodeElement.classList.add('error-shake');
+             // Apply error style based on session, but not to start/end nodes
+             if (!isStartOrEnd) {
+                 nodeElement.className = `node ${state.isTraining ? config.colors.trainingError : config.colors.error}`;
+             }
+
+
+             // Highlight the correct next node during training errors
+             if (state.isTraining) {
+                 const expectedValue = state.correctSequence[state.currentStep];
+                 const correctNodeData = state.nodes.find(n => n.value == expectedValue); // Loose comparison
+
+                 if (correctNodeData) {
+                     correctNodeData.element.classList.add('highlight-correct');
+                     setTimeout(() => {
+                         correctNodeData.element.classList.remove('highlight-correct');
+                         // If the element's class was changed to error, restore it after highlight
+                          if (!isStartOrEnd) {
+                              nodeElement.className = originalClasses;
+                          }
+                     }, 1000); // Remove highlight after 1 second
+                 } else {
+                      // If element not found (shouldn't happen if sequence matches nodes)
+                       if (!isStartOrEnd) {
+                           setTimeout(() => {
+                                nodeElement.className = originalClasses;
+                           }, 500); // Just restore original style after shake
+                       }
+                 }
+             } else {
+                 // For incorrect clicks in the main test, just shake and revert style
+                  if (!isStartOrEnd) {
+                      setTimeout(() => {
+                           nodeElement.className = originalClasses;
+                      }, 500); // Restore original style after shake
+                  }
+             }
+
+
+            // Remove error class after animation
+            setTimeout(() => {
+                nodeElement.classList.remove('error-shake');
+                 // Note: Style restoration is handled within the highlighting timeout for training
+                 // and in the else block above for main test.
+            }, 500);
+        }
+
+        // Handle training session completion
+        function handleTrainingComplete() {
+            stopTimer(); // Stop the training timer
+
+            // Store training stats (time in milliseconds)
+            const finalTrainingTimeMs = Date.now() - state.startTime;
+             if (state.currentPart === 1) {
+                 state.trainingPart1Stats.timeMs = finalTrainingTimeMs;
+             } else { // Part 2
+                 state.trainingPart2Stats.timeMs = finalTrainingTimeMs;
+             }
+
+            // Update UI
+            nextTrainingBtn.classList.remove('hidden'); // Show button to proceed to main test
+            resetBtn.classList.add('hidden'); // Hide reset during transition
+            accuracyInfo.classList.add('hidden'); // Hide live accuracy display
+
+             // Clear nodes and connections from training
+             nodeContainer.innerHTML = '';
+             state.nodes = [];
+             clearConnections();
+
+             // Display a message or update instructions to indicate training is complete and they can proceed
+             if (state.currentPart === 1) {
+                 trainingInstructionPart1.textContent = "Eğitim Tamamlandı! Ana Teste Geçmek İçin 'Ana Teste Geç' Butonuna Tıklayın.";
+             } else {
+                 trainingInstructionPart2.textContent = "Eğitim Tamamlandı! Ana Teste Geçmek İçin 'Ana Teste Geç' Butonuna Tıklayın.";
+             }
+        }
+
+
+        // Handle main test part completion (Part 1 or Part 2)
+        function handleMainTestPartComplete() {
+            const finalTimeMs = Date.now() - state.startTime;
+            stopTimer(); // Stop the timer for the completed part
+
+            // Store stats for the completed main part (time in milliseconds)
+            if (state.currentPart === 1) {
+                state.part1Stats.timeMs = finalTimeMs;
+                // Accuracy already calculated live, but ensure final value is based on final clicks
+                const acc1 = state.part1Stats.totalClicks > 0 ? Math.round((state.part1Stats.correctClicks / state.part1Stats.totalClicks) * 100) : 0;
+                state.part1Stats.accuracy = acc1;
+                accuracyInfo.classList.add('hidden'); // Hide live accuracy display
+                 // If Part 1 is complete, show the button to start Part 2 training
+                 if (state.currentPart === 1) {
+                     startPart2Btn.classList.remove('hidden');
+                 }
+                resetBtn.classList.add('hidden'); // Hide reset during transition
+            } else { // Part 2 completed
+                state.part2Stats.timeMs = finalTimeMs;
+                const acc2 = state.part2Stats.totalClicks > 0 ? Math.round((state.part2Stats.correctClicks / state.part2Stats.totalClicks) * 100) : 0;
+                state.part2Stats.accuracy = acc2;
+                accuracyInfo.classList.add('hidden');
+                resetBtn.classList.add('hidden'); // Hide reset button
+                displayResults(); // Show the final results screen
+            }
+        }
+
+        // Display final results screen
+        function displayResults() {
+		const storedDataString = sessionStorage.getItem('confirmationFormData');
+
+		const receivedData = JSON.parse(storedDataString);
+		const name = receivedData["userName"];
+			 //const telNo = receivedData["telNumber"];
+
+
+             testContainer.classList.add('hidden'); // Hide the test area
+             resultsScreen.classList.remove('hidden'); // Show results
+             restartBtn.classList.remove('hidden'); // Show restart button
+
+			 nameSurnameH4.textContent = "(Ad-Soyad: " + name + ")";
+
+             // Populate Training Part 1 Results (formatted time)
+            trainingPart1TimeDisp.textContent = msToTime(state.trainingPart1Stats.timeMs);
+            trainingPart1AccuracyDisp.textContent = state.trainingPart1Stats.accuracy;
+            trainingPart1CorrectDisp.textContent = state.trainingPart1Stats.correctClicks;
+            trainingPart1TotalDisp.textContent = state.trainingPart1Stats.totalClicks;
+
+             // Populate Main Part 1 Results (formatted time)
+             part1TimeDisp.textContent = msToTime(state.part1Stats.timeMs);
+             part1AccuracyDisp.textContent = state.part1Stats.accuracy;
+             part1CorrectDisp.textContent = state.part1Stats.correctClicks;
+             part1TotalDisp.textContent = state.part1Stats.totalClicks;
+
+              // Populate Training Part 2 Results (formatted time)
+            trainingPart2TimeDisp.textContent = msToTime(state.trainingPart2Stats.timeMs);
+            trainingPart2AccuracyDisp.textContent = state.trainingPart2Stats.accuracy;
+            trainingPart2CorrectDisp.textContent = state.trainingPart2Stats.correctClicks;
+            trainingPart2TotalDisp.textContent = state.trainingPart2Stats.totalClicks;
+
+              // Populate Main Part 2 Results (formatted time)
+             part2TimeDisp.textContent = msToTime(state.part2Stats.timeMs);
+             part2AccuracyDisp.textContent = state.part2Stats.accuracy;
+             part2CorrectDisp.textContent = state.part2Stats.correctClicks;
+             part2TotalDisp.textContent = state.part2Stats.totalClicks;
+
+             // Calculate statistics (using milliseconds for calculation, then format for display)
+             const totalTimeMs = state.trainingPart1Stats.timeMs + state.trainingPart2Stats.timeMs + state.part1Stats.timeMs + state.part2Stats.timeMs;
+             const totalTimeFormatted = msToTime(totalTimeMs);
+
+             const totalCorrectClicks = state.trainingPart1Stats.correctClicks + state.trainingPart2Stats.correctClicks + state.part1Stats.correctClicks + state.part2Stats.correctClicks;
+             const totalClicks = state.trainingPart1Stats.totalClicks + state.trainingPart2Stats.totalClicks + state.part1Stats.totalClicks + state.part2Stats.totalClicks;
+             const averageAccuracy = totalClicks > 0 ? Math.round((totalCorrectClicks / totalClicks) * 100) : 0;
+
+             const trainingTimeDifferenceMs = state.trainingPart2Stats.timeMs - state.trainingPart1Stats.timeMs;
+             const trainingTimeDifferenceFormatted = msToTime(trainingTimeDifferenceMs);
+
+             const testTimeDifferenceMs = state.part2Stats.timeMs - state.part1Stats.timeMs;
+             const testTimeDifferenceFormatted = msToTime(testTimeDifferenceMs);
+
+             const trainingAccuracyDifference = state.trainingPart1Stats.accuracy != 0 ? Math.round(((state.trainingPart2Stats.accuracy - state.trainingPart1Stats.accuracy) / state.trainingPart1Stats.accuracy) * 100) : 0;
+
+             const testAccuracyDifference = state.part1Stats.accuracy != 0 ? Math.round(((state.part2Stats.accuracy - state.part1Stats.accuracy) / state.part1Stats.accuracy) * 100) : 0;
+
+             // Populate general results (formatted time)
+             document.getElementById('total-time').textContent = totalTimeFormatted;
+             document.getElementById('average-accuracy').textContent = averageAccuracy;
+             document.getElementById('training-time-difference').textContent = trainingTimeDifferenceFormatted;
+             document.getElementById('test-time-difference').textContent = testTimeDifferenceFormatted;
+             document.getElementById('training-accuracy-difference').textContent = trainingAccuracyDifference;
+             document.getElementById('test-accuracy-difference').textContent = testAccuracyDifference;
+        }
+
+        // Convert milliseconds to MM:SS:TTT format
+         function msToTime(duration) {
+             if (isNaN(duration)) return '--:--:---'; // Handle non-numeric input
+
+             const sign = duration < 0 ? "-" : "";
+             const absDuration = Math.abs(duration);
+
+             const milliseconds = (absDuration % 1000).toString().padStart(3, '0');
+             const totalSeconds = Math.floor(absDuration / 1000);
+             const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+             const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+
+             return `${sign}${minutes}:${seconds}:${milliseconds}`;
+         }
+
+
+        // Draw connections between tapped nodes
+        function drawConnections() {
+            // Clear canvas
+            ctx.clearRect(0, 0, connectionCanvas.width, connectionCanvas.height);
+
+            // Set line style
+            ctx.strokeStyle = '#10b981'; // Emerald-500
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round'; // Smoother line ends
+
+            // Draw lines between consecutive tapped nodes
+            for (let i = 1; i < state.tappedNodes.length; i++) {
+                const prevNode = state.tappedNodes[i - 1];
+                const currentNode = state.tappedNodes[i];
+
+                ctx.beginPath();
+                ctx.moveTo(prevNode.x, prevNode.y);
+                ctx.lineTo(currentNode.x, currentNode.y);
+                ctx.stroke();
+            }
+        }
+
+        // Clear all connections
+        function clearConnections() {
+            ctx.clearRect(0, 0, connectionCanvas.width, connectionCanvas.height);
+        }
+
+        // Update progress display based on the current session
+        function updateProgress() {
+             progressDisplay.textContent = state.currentStep;
+             totalNodesDisplay.textContent = state.correctSequence.length; // Update total based on current sequence length
+        }
+
+        // Start timer
+        function startTimer() {
+            stopTimer(); // Ensure no duplicate timers
+            state.startTime = Date.now(); // Use Date.now() for more reliable interval calculation
+            state.timerInterval = setInterval(updateTimer, 10); // Update every 10ms for better resolution
+            updateTimer(); // Initial display
+        }
+
+        // Stop timer
+        function stopTimer() {
+            clearInterval(state.timerInterval);
+            state.timerInterval = null; // Clear interval ID
+            // state.startTime is kept to calculate final elapsed time
+        }
+
+        // Update timer display
+        function updateTimer() {
+             if (!state.startTime) {
+                 timeDisplay.textContent = '00:00:000';
+                 return;
+             }
+            const elapsedMs = Date.now() - state.startTime;
+            // Format as MM:SS:TTT
+            const minutes = Math.floor(elapsedMs / 60000).toString().padStart(2, '0');
+            const seconds = Math.floor((elapsedMs % 60000) / 1000).toString().padStart(2, '0');
+            const milliseconds = (elapsedMs % 1000).toString().padStart(3, '0');
+
+            timeDisplay.textContent = `${minutes}:${seconds}:${milliseconds}`;
+        }
+
+        // Initialize the application when the page loads
+        window.addEventListener('DOMContentLoaded', init);
+
+
+        function downloadResults() { 
+    const storedDataString = sessionStorage.getItem('confirmationFormData');
+    const receivedData = JSON.parse(storedDataString);
+
+    const name = receivedData["userName"];
+    const telNo = receivedData["telNumber"];
+    const birthDate = receivedData["birthDate"];
+    const question1 = receivedData["question1"];
+    const question1Details = receivedData["question1Details"];
+    const question2 = receivedData["question2"];
+    const sex = receivedData["sex"];
+
+    // Use raw millisecond values and accuracy numbers directly from state
+    // Added checks for undefined/null when retrieving from state
+    const part1TimeMs = state.part1Stats.timeMs !== undefined ? state.part1Stats.timeMs : 0;
+    const part1Accuracy = state.part1Stats.accuracy !== undefined ? state.part1Stats.accuracy : 'N/A';
+    const part2TimeMs = state.part2Stats.timeMs !== undefined ? state.part2Stats.timeMs : 0;
+    const part2Accuracy = state.part2Stats.accuracy !== undefined ? state.part2Stats.accuracy : 'N/A';
+    const trainingPart1TimeMs = state.trainingPart1Stats.timeMs !== undefined ? state.trainingPart1Stats.timeMs : 0;
+    const trainingPart1Accuracy = state.trainingPart1Stats.accuracy !== undefined ? state.trainingPart1Stats.accuracy : 'N/A';
+    const trainingPart2TimeMs = state.trainingPart2Stats.timeMs !== undefined ? state.trainingPart2Stats.timeMs : 0;
+    const trainingPart2Accuracy = state.trainingPart2Stats.accuracy !== undefined ? state.trainingPart2Stats.accuracy : 'N/A';
+
+    // Recalculate or get derived values using raw data, adding checks for undefined/null
+    const totalClicks = (state.trainingPart1Stats.totalClicks || 0) + (state.trainingPart2Stats.totalClicks || 0) + (state.part1Stats.totalClicks || 0) + (state.part2Stats.totalClicks || 0);
+    const totalCorrectClicks = (state.trainingPart1Stats.correctClicks || 0) + (state.trainingPart2Stats.correctClicks || 0) + (state.part1Stats.correctClicks || 0) + (state.part2Stats.correctClicks || 0);
+    const averageAccuracy = totalClicks > 0 ? Math.round((totalCorrectClicks / totalClicks) * 100) : 0;
+
+    const totalTimeMs = trainingPart1TimeMs + trainingPart2TimeMs + part1TimeMs + part2TimeMs; // Summing raw ms values
+    const trainingTimeDifferenceMs = trainingPart2TimeMs - trainingPart1TimeMs; // Difference in ms
+    const testTimeDifferenceMs = part2TimeMs - part1TimeMs; // Difference in ms
+
+    // Using checks for division by zero for accuracy differences
+    const trainingAccuracyDifference = (trainingPart1Accuracy !== 'N/A' && trainingPart1Accuracy !== 0) ? Math.round(((trainingPart2Accuracy - trainingPart1Accuracy) / trainingPart1Accuracy) * 100) : 0;
+    const testAccuracyDifference = (part1Accuracy !== 'N/A' && part1Accuracy !== 0) ? Math.round(((part2Accuracy - part1Accuracy) / part1Accuracy) * 100) : 0;
+
+
+    // --- Logic to create TEXT content (Based on your latest text version) ---
+    let resultsText = "";
+    resultsText +=  `Ad-Soyad: ${name}\n`;
+    resultsText +=  `Telefon Numarası: ${telNo}\n\n`;
+    resultsText +=  `Doğum Tarihi: ${birthDate}\n`;
+    resultsText +=  `Cinsiyeti: ${sex}\n`;
+    resultsText +=  `Son iki ayda herhangi bir psikiyatrik veya psikolojik tedavi görmüş mü?: ${question1}\n`;
+    resultsText +=  `Yukarıdaki soruya cevabınız “Evet” ise bu tedaviler gereği herhangi bir ilaç kullandınız mı yazınız: ${question1Details}\n`;
+    resultsText +=  `Renk körlüğü ya da görme bozukluğu var mı?: ${question2}\n\n`;
+
+    resultsText += `1. Bölüm Eğitim Süresi (ms): ${trainingPart1TimeMs}\n`;
+    resultsText += `1. Bölüm Eğitim Doğruluğu: ${trainingPart1Accuracy}\n`;
+    resultsText += `1. Bölüm Süresi (ms): ${part1TimeMs}\n`;
+    resultsText += `1. Bölüm Doğruluğu: ${part1Accuracy}\n\n`;
+
+    resultsText += `2. Bölüm Eğitim Süresi (ms): ${trainingPart2TimeMs}\n`;
+    resultsText += `2. Bölüm Eğitim Doğruluğu: ${trainingPart2Accuracy}\n`;
+    resultsText += `2. Bölüm Süresi (ms): ${part2TimeMs}\n`;
+    resultsText += `2. Bölüm Doğruluğu: ${part2Accuracy}\n\n`;
+
+    resultsText += `Toplam Süre (ms): ${totalTimeMs}\n`;
+    resultsText += `Ortalama Doğruluk: ${averageAccuracy}\n`;
+    resultsText += `Eğitimler Arası Süre Farkı (ms): ${trainingTimeDifferenceMs}\n`;
+    resultsText += `Bölümler Arası Süre Farkı (ms): ${testTimeDifferenceMs}\n`;
+    resultsText += `Bölümler Arası Doğruluk Farkı: ${trainingAccuracyDifference}\n`;
+    resultsText += `Eğitimler Arası Doğruluk Farkı: ${testAccuracyDifference}\n`;
+
+
+    // --- Logic to create CSV content (Based on our previous CSV version) ---
+    // Helper function for escaping CSV values (copied from previous example)
+    const escapeCsvValue = (value) => {
+        if (value === undefined || value === null) {
+            return '';
+        }
+        let stringValue = String(value);
+        // Check if value contains comma, double quote, or newline
+        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+            // Escape double quotes by doubling them, then wrap in double quotes
+            return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+    };
+
+    // Define the headers for the CSV file
+    let csvContent = "Ad-Soyad,Telefon Numarası,Doğum Tarihi,Cinsiyeti,\"Son iki ayda herhangi bir psikiyatrik veya psikolojik tedavi görmüş mü?\",\"Yukarıdaki soruya cevabınız “Evet” ise bu tedaviler gereği herhangi bir ilaç kullandınız mı?\",\"Renk körlüğü ya da görme bozukluğu var mı?\"";
+
+    // Add headers for test results, indicating times are in milliseconds
+    csvContent += ",1. Bölüm Eğitim Süresi (ms),1. Bölüm Eğitim Doğruluğu,1. Bölüm Süresi (ms),1. Bölüm Doğruluğu";
+    csvContent += ",2. Bölüm Eğitim Süresi (ms),2. Bölüm Eğitim Doğruluğu,2. Bölüm Süresi (ms),2. Bölüm Doğruluğu";
+    csvContent += ",Toplam Süre (ms),Ortalama Doğruluk";
+    csvContent += ",Eğitimler Arası Süre Farkı (ms),Bölümler Arası Süre Farkı (ms)";
+    csvContent += ",Eğitimler Arası Doğruluk Farkı (%),Bölümler Arası Doğruluk Farkı (%)\n";
+
+    // Add user and test results data for the CSV row
+    let rowData = [
+        escapeCsvValue(name),
+        escapeCsvValue(telNo),
+        escapeCsvValue(birthDate),
+        escapeCsvValue(sex),
+        escapeCsvValue(question1),
+        escapeCsvValue(question1Details),
+        escapeCsvValue(question2),
+
+        // Add raw numerical values for times and accuracies to CSV
+        escapeCsvValue(trainingPart1TimeMs),
+        escapeCsvValue(trainingPart1Accuracy),
+        escapeCsvValue(part1TimeMs),
+        escapeCsvValue(part1Accuracy),
+
+        escapeCsvValue(trainingPart2TimeMs),
+        escapeCsvValue(trainingPart2Accuracy),
+        escapeCsvValue(part2TimeMs),
+        escapeCsvValue(part2Accuracy),
+
+        escapeCsvValue(totalTimeMs),
+        escapeCsvValue(averageAccuracy),
+
+        escapeCsvValue(trainingTimeDifferenceMs),
+        escapeCsvValue(testTimeDifferenceMs),
+
+        escapeCsvValue(trainingAccuracyDifference),
+        escapeCsvValue(testAccuracyDifference)
+    ];
+
+    csvContent += rowData.join(',') + '\n';
+
+
+    // --- Download the TEXT file (Using the Blob method for consistency) ---
+    const textBlob = new Blob([resultsText], { type: 'text/plain;charset=utf-8;' });
+    const textUrl = URL.createObjectURL(textBlob);
+    const textLink = document.createElement('a');
+    textLink.href = textUrl;
+    textLink.download = 'tmt_sonuçlar.txt';
+    document.body.appendChild(textLink);
+    textLink.click();
+    document.body.removeChild(textLink);
+    URL.revokeObjectURL(textUrl); // Free up memory
+
+
+    // --- Download the CSV file (Using the Blob method) ---
+    const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const csvUrl = URL.createObjectURL(csvBlob);
+    const csvLink = document.createElement('a');
+    csvLink.href = csvUrl;
+    csvLink.download = 'tmt_sonuçlar.csv'; // Change file extension to .csv
+    document.body.appendChild(csvLink);
+
+    // A small delay might help some browsers initiate the second download,
+    // especially if not triggered by a direct user click.
+    // setTimeout(() => {
+         csvLink.click();
+         document.body.removeChild(csvLink);
+         URL.revokeObjectURL(csvUrl); // Free up memory
+    // }, 100); // Small delay
+
+
+}
+    document.addEventListener('DOMContentLoaded', function() {
+        const downloadBtn = document.getElementById('download-btn');
+        downloadBtn.addEventListener('click', downloadResults);});
+    </script>
+</body>
+</html>

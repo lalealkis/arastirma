@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anasayfa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+	    background: #007BFF;
+            background: linear-gradient(180deg, rgba(0, 123, 255, 1) 0%, rgba(244, 247, 246, 1) 100%);
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 0 20px 30px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        /* Styling for the clickable main blocks */
+        .main-block-link {
+            display: flex; /* Use flex to center content easily */
+            flex-direction: column; /* Stack content vertically */
+            justify-content: center; /* Center vertically */
+            align-items: center; /* Center horizontally */
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none; /* Remove default link underline */
+            color: inherit; /* Inherit text color */
+            text-align: center;
+            height: 100%; /* Make blocks the same height if needed, depends on content */
+            box-sizing: border-box; /* Include padding and border in height */
+        }
+         .main-block-link:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .main-block-link h2 {
+            color: #0056b3;
+            margin-top: 0;
+            margin-bottom: 10px; /* Reduced margin */
+        }
+         .main-block-link p {
+             margin-bottom: 0; /* Remove margin from last paragraph */
+         }
+
+
+        /* Specific styling for the main block containing sub-links */
+        .main-block-sublinks {
+             background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column; /* Stack title and sub-links vertically */
+        }
+        .main-block-sublinks h2 {
+             color: #0056b3;
+            margin-top: 0;
+            margin-bottom: 15px;
+             text-align: center;
+        }
+
+        .sub-link-item {
+            display: flex; /* Use flex for content within sub-link */
+            flex-direction: column; /* Stack potential title/description */
+            justify-content: center; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+            background-color: #e9f5ff; /* Light background for links */
+            border: 1px solid #cce0ff; /* Slightly darker border */
+            border-radius: 10px;
+            padding: 15px;
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+            flex-grow: 1; /* Allow items to grow and fill space */
+        }
+        .sub-link-item:hover {
+             background-color: #cfe3ff; /* Slightly darker hover background */
+             transform: translateY(-3px);
+             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .sub-link-item span { /* For potential text inside sub-link */
+            pointer-events: none; /* Allow click to pass through to the link */
+        }
+
+
+        .sub-links-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Stack sub-links on small screens */
+            gap: 15px; /* Space between sub-link items */
+        }
+
+        @media (min-width: 600px) { /* Arrange sub-links in a column on wider screens */
+             .sub-links-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+         /* Ensure direct text within main blocks is not affected by link styles */
+        .main-block-sublinks > p {
+             text-align: center;
+             margin-bottom: 20px;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Deneylerimize Hoşgeldiniz</h1>
+        <h2 id="userName" style="text-align: left;"></h2>
+    </div>
+
+    <div class="container">
+        <a href="stroop.html" class="main-block-link">
+            <h2>Stroop Testi</h2>
+        </a>
+
+        <div class="main-block-sublinks">
+            <div class="sub-links-grid">
+                <a href="memory-exp1.html" class="sub-link-item">
+                    <span>Yönlendirilmiş Unutma Deneyi 1</span>
+                </a>
+                <a href="/experiments-homepage/tetris.html" class="sub-link-item">
+                     <span>Oyun</span>
+                </a>
+                <a href="memory-exp2.html" class="sub-link-item">
+                    <span>Yönlendirilmiş Unutma Deneyi 2</span>
+                </a>
+            </div>
+        </div>
+
+        <a href="tmt.html" class="main-block-link">
+            <h2>İz Sürme Testi</h2>
+           
+        </a>
+    </div>
+	
+	<div style="justify-items: center; margin-top: 20vh;">
+		<a href="/experiments-homepage/" onclick="resetSessionStorage()" class="sub-link-item" style="width: 120px; border-radius: 15px; background-color: #bf0b0b; color: #ffffff;">
+			Oturumu Sıfırla
+		</a>
+	</div>
+
+	
+<script>
+	const storedDataString = sessionStorage.getItem('confirmationFormData');
+ 	const receivedData = JSON.parse(storedDataString);
+     const name = receivedData["userName"];
+     document.getElementById("userName").innerHTML = "Oturum: " + name;
+ 
+ 	function resetSessionStorage(){
+ 		sessionStorage.removeItem('confirmationFormData');
+		sessionStorage.setItem('isListOrderSwapped', JSON.stringify({"value":!JSON.parse(sessionStorage.getItem("isListOrderSwapped"))["value"]}));
+ 	}
+</script>
+</body>
+</html>
